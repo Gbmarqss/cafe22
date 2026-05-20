@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cafe-cream: #f4eadc;
+  --color-cafe-paper: #fff8ec;
+  --color-cafe-ink: #2b1a14;
+  --color-cafe-espresso: #2b1a14;
+  --color-cafe-muted: #7b6658;
+  --color-cafe-line: #dfcdb8;
+  --color-cafe-honey: #d89b35;
+  --color-cafe-cherry: #9f2f2f;
+  --shadow-cafe: 0 18px 45px rgba(43, 26, 20, 0.11);
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: #f4eadc;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: #f4eadc;
+  color: #2b1a14;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+}
+
+::selection {
+  background: #d89b35;
+  color: #2b1a14;
+}
+
+.cafe-texture {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(216, 155, 53, 0.18), transparent 24rem),
+    radial-gradient(circle at 90% 20%, rgba(159, 47, 47, 0.08), transparent 22rem),
+    linear-gradient(90deg, rgba(43, 26, 20, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(43, 26, 20, 0.03) 1px, transparent 1px);
+  background-size: auto, auto, 42px 42px, 42px 42px;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7b6658;
+}
+
+.action-card {
+  min-height: 118px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 1px solid #dfcdb8;
+  border-radius: 1.35rem;
+  padding: 1rem;
+  font-weight: 900;
+  box-shadow: 0 18px 45px rgba(43, 26, 20, 0.11);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.action-card:active {
+  transform: scale(0.98);
+}
+
+.menu-card {
+  min-height: 310px;
+  border: 1px solid #dfcdb8;
+  border-radius: 1.45rem;
+  background: #fff8ec;
+  padding: 1.15rem;
+  box-shadow: 0 18px 45px rgba(43, 26, 20, 0.11);
+}
+
+.icon-action {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #2b1a14;
+  color: #fff8ec;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.icon-action:active {
+  transform: scale(0.94);
+}
+
+.receipt-paper {
+  position: relative;
+  background:
+    linear-gradient(#fff8ec, #fff8ec) padding-box,
+    repeating-linear-gradient(90deg, transparent 0 10px, rgba(43, 26, 20, 0.18) 10px 12px) border-box;
+  border: 0 solid transparent;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.receipt-paper::before,
+.receipt-paper::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background:
+    linear-gradient(135deg, transparent 8px, #fff8ec 0) 0 0 / 16px 16px,
+    linear-gradient(-135deg, transparent 8px, #fff8ec 0) 0 0 / 16px 16px;
+}
+
+.receipt-paper::before {
+  top: -9px;
+  transform: rotate(180deg);
+}
+
+.receipt-paper::after {
+  bottom: -9px;
+}
+
+.whatsapp-pattern {
+  background-image:
+    radial-gradient(circle at 12px 12px, rgba(43, 26, 20, 0.18) 1.5px, transparent 2px),
+    radial-gradient(circle at 34px 28px, rgba(43, 26, 20, 0.14) 1px, transparent 2px),
+    linear-gradient(45deg, transparent 47%, rgba(43, 26, 20, 0.08) 48%, rgba(43, 26, 20, 0.08) 52%, transparent 53%);
+  background-size: 54px 54px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
