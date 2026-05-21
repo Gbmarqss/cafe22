@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
+import { Toaster, toast } from "sonner";
+import useSound from "use-sound";
+import SignatureCanvas from "react-signature-canvas";
 import {
   Archive,
   Ban,
@@ -7,15 +10,20 @@ import {
   CalendarCheck,
   Camera,
   ChevronRight,
+  CheckCircle2,
   Clock3,
   Coffee,
   Croissant,
+  CupSoda,
+  Eraser,
   Gamepad2,
   Heart,
   Home,
   Image as ImageIcon,
   MessageCircle,
+  Monitor,
   Pause,
+  PenLine,
   Play,
   Radio,
   ReceiptText,
@@ -24,9 +32,11 @@ import {
   Stamp,
   Trophy,
   Utensils,
+  X,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { archiveEvents } from "./data/cafeArchive";
+import { acervoHero, photoEvents } from "./data/photoArchive";
 import { cn } from "./lib/utils";
 
 const startDate = new Date(2025, 10, 22, 0, 0, 0);
@@ -36,7 +46,7 @@ const navItems = [
   { id: "counter", label: "Balcão", icon: Home },
   { id: "menu", label: "Cardápio", icon: Utensils },
   { id: "table", label: "Mesa 22", icon: CalendarCheck },
-  { id: "mural", label: "Mural", icon: ImageIcon },
+  { id: "mural", label: "Acervo", icon: ImageIcon },
   { id: "archive", label: "Arquivo", icon: Archive },
 ];
 
@@ -93,15 +103,6 @@ const menuItems = [
   },
 ];
 
-const muralItems = [
-  { src: "/img/tudo.jpg", title: "Foto atras do balcao", tag: "Mesa 22" },
-  { src: "/img/foto1.jpg", title: "Co-op ativo", tag: "Player 1 & Player 2" },
-  { src: "/img/foto2.jpg", title: "Minha constante", tag: "No Ordinary Love" },
-  { src: "/img/foto3.jpg", title: "Primeira Dama", tag: "Advogata" },
-  { src: "/img/IMG-20251219-WA0034.jpg", title: "Pedido favorito", tag: "Date" },
-  { src: "/img/IMG-20260101-WA0051.jpg", title: "O jeito que eu lembro", tag: "Mural" },
-];
-
 const loyaltyStamps = [
   ["06/05", "Primeiro sinal", "A cantada foi entregue. Ela so nao leu o cardapio ainda."],
   ["30/05", "Modo protecao", "Quando ficar contigo ja parecia natural."],
@@ -150,6 +151,7 @@ function App() {
   return (
     <div className="min-h-screen bg-cafe-cream text-cafe-ink">
       <div className="fixed inset-0 pointer-events-none cafe-texture" />
+      <Toaster position="top-center" richColors theme="light" />
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-28 pt-5 sm:px-6 lg:pb-10">
@@ -157,7 +159,7 @@ function App() {
           {activeTab === "counter" && <Balcao key="counter" setActiveTab={setActiveTab} />}
           {activeTab === "menu" && <Cardapio key="menu" onOrder={setReceipt} />}
           {activeTab === "table" && <Mesa22 key="table" setActiveTab={setActiveTab} />}
-          {activeTab === "mural" && <Mural key="mural" />}
+          {activeTab === "mural" && <AcervoFotos key="mural" />}
           {activeTab === "archive" && (
             <Arquivo key="archive" activeEvent={activeEvent} setSelectedEventId={setSelectedEventId} />
           )}
@@ -253,7 +255,7 @@ function Balcao({ setActiveTab }) {
     <Page className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
       <section className="overflow-hidden rounded-[1.6rem] border border-cafe-line bg-cafe-paper shadow-cafe">
         <div className="relative min-h-[390px]">
-          <img src="/img/tudo.jpg" alt="Gabriel e Gabi" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={acervoHero.src} alt={acervoHero.alt} className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-cafe-espresso via-cafe-espresso/50 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-6 text-cafe-paper sm:p-8">
             <p className="mb-3 inline-flex rounded-full bg-cafe-honey px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cafe-espresso">
@@ -347,7 +349,7 @@ function RadioCard() {
     <section className="rounded-[1.4rem] border border-cafe-line bg-[#2b1a14] p-4 text-cafe-paper shadow-cafe">
       <audio ref={audioRef} src="/musica.mp3" onEnded={() => setPlaying(false)} />
       <div className="flex items-center gap-4">
-        <img src="/img/sade.jpg" alt="Sade" className="h-20 w-20 rounded-2xl object-cover" />
+        <img src={acervoHero.src} alt={acervoHero.alt} className="h-20 w-20 rounded-2xl object-cover" />
         <div className="min-w-0 flex-1">
           <p className="eyebrow text-cafe-paper/60">radio da cafeteria</p>
           <h3 className="truncate font-serif text-2xl font-bold">No Ordinary Love</h3>
@@ -366,18 +368,82 @@ function RadioCard() {
 }
 
 function Cardapio({ onOrder }) {
+  const [forbiddenClicks, setForbiddenClicks] = useState(0);
+  const [secretUnlocked, setSecretUnlocked] = useState(false);
+  const [preparingItem, setPreparingItem] = useState(null);
+  const [playClick] = useSound("/musica.mp3", {
+    volume: 0.06,
+    sprite: { order: [0, 650] },
+  });
+
+  const prepareOrder = (item) => {
+    setPreparingItem(item.name);
+    playClick({ id: "order" });
+
+    toast.promise(
+      new Promise((resolve) => {
+        window.setTimeout(resolve, item.clandestine ? 900 : 1800);
+      }),
+      {
+        loading: item.clandestine
+          ? `Protocolando habeas corpus para: ${item.name}...`
+          : `Moendo graos e preparando: ${item.name}...`,
+        success: () => {
+          setPreparingItem(null);
+          onOrder(item);
+          return item.clandestine ? "Liminar concedida. Pedido liberado no balcao." : "Pedido finalizado. Retire no balcao!";
+        },
+        error: () => {
+          setPreparingItem(null);
+          return "Erro na maquina de cafe.";
+        },
+      },
+    );
+  };
+
+  const handleOrder = (item) => {
+    if (item.forbidden && !secretUnlocked) {
+      const nextCount = forbiddenClicks + 1;
+      setForbiddenClicks(nextCount);
+
+      if (nextCount >= 3) {
+        setSecretUnlocked(true);
+        setForbiddenClicks(0);
+        confetti({ particleCount: 110, spread: 75, origin: { y: 0.6 } });
+        toast.success("Habeas Corpus concedido!", {
+          description: "Pedido liberado clandestinamente pela Mesa 22.",
+        });
+        prepareOrder({ ...item, forbidden: false, clandestine: true });
+        return;
+      }
+
+      toast.error("Veto da Primeira Dama!", {
+        description: `${3 - nextCount} tentativa${3 - nextCount === 1 ? "" : "s"} ate a sustentacao oral.`,
+      });
+      return;
+    }
+
+    prepareOrder(item);
+  };
+
   return (
     <Page>
+      <CardapioHeader />
       <SectionTitle
         eyebrow="cardapio da casa"
         title="Pedidos que parecem café, mas guardam história."
-        description="Cada item gera um recibo simbólico do Café 22. E claro, a Primeira Dama tem prioridade."
+        description="Escolha no balcao, aguarde o preparo e retire o recibo afetivo quando o pedido ficar pronto."
       />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
-            <article key={item.name} className="menu-card">
+            <Motion.article
+              key={item.name}
+              className="menu-card"
+              animate={item.forbidden && forbiddenClicks > 0 && !secretUnlocked ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }}
+              transition={{ duration: 0.28 }}
+            >
               <div className="flex items-start justify-between gap-4">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-cafe-cream text-cafe-espresso">
                   <Icon size={23} />
@@ -391,14 +457,15 @@ function Cardapio({ onOrder }) {
               <div className="mt-5 flex items-center justify-between gap-4 border-t border-cafe-line pt-4">
                 <span className="text-sm font-black text-cafe-espresso">{item.price}</span>
                 <button
-                  onClick={() => onOrder(item)}
-                  className={cn("icon-action", item.forbidden && "bg-cafe-cherry")}
+                  onClick={() => handleOrder(item)}
+                  disabled={preparingItem === item.name}
+                  className={cn("icon-action", item.forbidden && !secretUnlocked && "bg-cafe-cherry", preparingItem === item.name && "animate-pulse")}
                   aria-label={item.forbidden ? `${item.name} proibido` : `Pedir ${item.name}`}
                 >
-                  {item.forbidden ? <Ban size={20} /> : <ChevronRight size={20} />}
+                  {preparingItem === item.name ? <Coffee size={20} /> : item.forbidden && !secretUnlocked ? <Ban size={20} /> : <ChevronRight size={20} />}
                 </button>
               </div>
-            </article>
+            </Motion.article>
           );
         })}
       </div>
@@ -406,9 +473,51 @@ function Cardapio({ onOrder }) {
   );
 }
 
+function CardapioHeader() {
+  return (
+    <section className="relative mb-7 min-h-[13rem] overflow-hidden rounded-[1.45rem] border border-[#43291f] bg-cafe-espresso p-5 text-cafe-paper shadow-cafe sm:min-h-[14rem] sm:p-6">
+      <div className="absolute inset-0 opacity-35 cafe-counter-pattern" />
+      <div className="absolute bottom-0 left-0 h-20 w-full border-t-[7px] border-cafe-line bg-[#21130e]" />
+
+      <div className="absolute right-5 top-5 z-20 text-right sm:right-6 sm:top-6">
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-paper/55">senha 22</p>
+        <h2 className="font-serif text-3xl font-bold leading-tight text-cafe-honey sm:text-4xl">Area de Pedidos</h2>
+        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-cafe-paper/65">aguarde ser chamada</p>
+      </div>
+
+      <div className="relative z-10 flex min-h-[11rem] items-end justify-between gap-4 pr-0 pt-14 sm:pr-64 sm:pt-4">
+        <div className="flex items-end gap-5 sm:gap-8">
+          <div className="flex flex-col items-center">
+            <div className="relative h-20 w-24 rounded-t-2xl border border-white/20 bg-[#c9c4bc] shadow-[inset_0_-10px_0_rgba(0,0,0,0.12)]">
+              <div className="mx-auto mt-3 h-2 w-14 rounded-full bg-[#5f5a55]" />
+              <div className="absolute bottom-4 left-1/2 h-5 w-9 -translate-x-1/2 rounded-b-lg bg-[#3c3733]" />
+            </div>
+            <div className="h-11 w-20 rounded-b-xl bg-[#9b958c]" />
+            <div className="-mt-2 grid h-8 w-10 place-items-center rounded-b-full border border-cafe-paper/50 bg-cafe-espresso text-cafe-paper">
+              <Coffee size={19} />
+            </div>
+          </div>
+
+          <div className="mb-2 hidden flex-col items-center sm:flex">
+            <Monitor className="text-cafe-cream" size={43} />
+            <div className="h-8 w-14 rounded-b-lg bg-[#5b5048]" />
+          </div>
+
+          <div className="mb-1 flex items-end gap-2">
+            <span className="grid h-11 w-11 place-items-center rounded-full border border-cafe-line/60 bg-cafe-paper text-cafe-espresso">
+              <CupSoda size={22} />
+            </span>
+            <span className="h-8 w-5 rounded-t-full bg-cafe-honey/90" />
+            <span className="h-5 w-12 rounded-full bg-cafe-paper/85" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Mesa22({ setActiveTab }) {
   const time = useRelationshipTime();
-
   return (
     <Page className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="rounded-[1.6rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
@@ -442,11 +551,7 @@ function Mesa22({ setActiveTab }) {
           title="Carta da Casa"
           text="Uma carta de 6 meses com cara de bilhete deixado no balcão."
         />
-        <FeatureCard
-          icon={Scale}
-          title="Termos de Amor"
-          text="Contrato da casa: fome atenua, chocolate ajuda, carinho é obrigatório."
-        />
+        <TermosAdvogata />
         <LoyaltyCard />
       </section>
     </Page>
@@ -478,6 +583,64 @@ function FeatureCard(props) {
         <span className="mt-1 block text-sm leading-5 text-cafe-muted">{props.text}</span>
       </span>
     </Wrapper>
+  );
+}
+
+function TermosAdvogata() {
+  const [assinado, setAssinado] = useState(
+    () => window.localStorage.getItem("contrato_mesa22_assinado") === "true",
+  );
+
+  const handleAssinar = () => {
+    window.localStorage.setItem("contrato_mesa22_assinado", "true");
+    setAssinado(true);
+    confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+    toast.success("Contrato deferido!", {
+      description: "Os Termos de Amor da Mesa 22 entraram em vigor.",
+    });
+  };
+
+  return (
+    <article className="rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
+      <div className="mb-4 flex items-center gap-3">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cafe-espresso text-cafe-paper">
+          <Scale size={22} />
+        </span>
+        <div>
+          <p className="eyebrow">contrato juridico</p>
+          <h3 className="font-serif text-3xl font-bold">Termos de Amor</h3>
+        </div>
+      </div>
+
+      {assinado ? (
+        <div className="rounded-2xl border border-[#275d3b]/20 bg-[#d9fdd3] p-4 text-[#275d3b]">
+          <p className="flex items-center gap-2 text-sm font-black">
+            <CheckCircle2 size={18} />
+            Deferido e assinado pela Primeira Dama
+          </p>
+          <p className="mt-2 text-xs font-semibold opacity-80">Contrato vitalicio em vigor. Prioridade afetiva reconhecida.</p>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-3 text-sm leading-6 text-cafe-muted">
+            <p>
+              <strong className="text-cafe-ink">Art. 1:</strong> A contratante tem direito incontestavel a atencao,
+              carinho ilimitado e prioridade na fila de pedidos.
+            </p>
+            <p>
+              <strong className="text-cafe-ink">Art. 2:</strong> Fome, TPM ou saudade atenuam qualquer infracao,
+              exigindo aplicacao imediata do item Chocolate Habeas Corpus.
+            </p>
+          </div>
+          <button
+            onClick={handleAssinar}
+            className="mt-5 w-full rounded-2xl bg-cafe-espresso px-5 py-4 text-sm font-black uppercase tracking-[0.16em] text-cafe-paper transition active:scale-[0.99]"
+          >
+            Assinar eletronicamente
+          </button>
+        </>
+      )}
+    </article>
   );
 }
 
@@ -619,28 +782,87 @@ function ChatBubble({ message }) {
   );
 }
 
-function Mural() {
+function AcervoFotos() {
+  const [selectedEventId, setSelectedEventId] = useState(photoEvents[0]?.id);
+  const activeEvent = photoEvents.find((event) => event.id === selectedEventId) ?? photoEvents[0];
+
+  if (!activeEvent) {
+    return null;
+  }
+
   return (
     <Page>
       <SectionTitle
-        eyebrow="mural da cafeteria"
-        title="Fotos, dates e momentos para ir preenchendo com o tempo."
-        description="A base já está pronta para virar o canto das fotos de vocês, sem perder o clima de polaroid."
+        eyebrow="acervo da cafeteria"
+        title="Cada pasta virou uma memória com nome, contexto e lugar próprio."
+        description="Escolha um evento para ver as fotos daquele capítulo da Mesa 22, sem misturar as histórias."
       />
+
+      <section className="mb-5 overflow-hidden rounded-[1.45rem] border border-cafe-line bg-cafe-paper shadow-cafe">
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="relative min-h-[270px]">
+            <img src={acervoHero.src} alt={acervoHero.alt} className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-cafe-espresso/80 via-cafe-espresso/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 p-5 text-cafe-paper">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-cafe-honey">foto da casa</p>
+              <h2 className="mt-1 font-serif text-4xl font-bold">Pebinhas taiobas</h2>
+            </div>
+          </div>
+          <div className="flex flex-col justify-between gap-5 p-5 sm:p-6">
+            <div>
+              <p className="eyebrow">pasta do acervo</p>
+              <p className="mt-1 text-sm font-black uppercase tracking-[0.14em] text-cafe-honey">
+                {activeEvent.folderName}
+              </p>
+              <h3 className="mt-2 font-serif text-4xl font-bold">{activeEvent.title}</h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-cafe-muted">{activeEvent.summary}</p>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <InfoMetric value={photoEvents.length} label="eventos" />
+              <InfoMetric value={activeEvent.images.length} label="fotos" />
+              <InfoMetric value="22" label="mesa" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mb-5 flex gap-3 overflow-x-auto pb-2">
+        {photoEvents.map((event) => (
+          <button
+            key={event.id}
+            onClick={() => setSelectedEventId(event.id)}
+            className={cn(
+              "min-w-[250px] rounded-[1.1rem] border p-3 text-left transition",
+              event.id === activeEvent.id
+                ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
+                : "border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40",
+            )}
+          >
+            <span className="text-xs font-black uppercase tracking-[0.14em] opacity-70">{event.displayDate}</span>
+            <strong className="mt-1 block font-serif text-xl leading-tight">{event.folderName}</strong>
+            <span className="mt-1 block text-sm font-semibold leading-5 opacity-80">{event.title}</span>
+            <span className="mt-1 flex items-center gap-1 text-xs font-bold opacity-70">
+              <Camera size={13} />
+              {event.images.length} foto{event.images.length === 1 ? "" : "s"}
+            </span>
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {muralItems.map((item, index) => (
+        {activeEvent.images.map((src, index) => (
           <Motion.article
-            key={item.src}
+            key={src}
             whileHover={{ y: -4, rotate: 0 }}
             className="rounded-[1.2rem] border border-cafe-line bg-cafe-paper p-3 shadow-cafe"
             style={{ rotate: `${[-1.4, 1.2, -0.6, 1.6, -1, 0.8][index]}deg` }}
           >
             <div className="aspect-[4/5] overflow-hidden rounded-xl bg-cafe-cream">
-              <img src={item.src} alt={item.title} className="h-full w-full object-cover" />
+              <img src={src} alt={`${activeEvent.title} ${index + 1}`} className="h-full w-full object-cover" />
             </div>
             <div className="px-2 pb-2 pt-4">
-              <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{item.tag}</span>
-              <h3 className="font-serif text-2xl font-bold">{item.title}</h3>
+              <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{activeEvent.label}</span>
+              <h3 className="font-serif text-2xl font-bold">{activeEvent.title}</h3>
             </div>
           </Motion.article>
         ))}
@@ -649,22 +871,51 @@ function Mural() {
   );
 }
 
+function InfoMetric({ value, label }) {
+  return (
+    <div className="rounded-2xl border border-cafe-line bg-cafe-cream p-3 text-center">
+      <strong className="block font-serif text-3xl leading-none">{value}</strong>
+      <span className="mt-1 block text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
+    </div>
+  );
+}
+
 function ReceiptModal({ item, onClose }) {
+  const signatureRef = useRef(null);
+  const [signed, setSigned] = useState(false);
+
+  const closeWhenSigned = () => {
+    if (!signed) {
+      toast.warning("Assinatura pendente", {
+        description: "A Primeira Dama precisa assinar o recebimento antes de servir na mesa.",
+      });
+      return;
+    }
+    onClose();
+  };
+
   return (
     <Motion.div
       className="fixed inset-0 z-[70] grid place-items-center bg-cafe-espresso/70 p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
+      onClick={closeWhenSigned}
     >
       <Motion.div
         initial={{ y: 40, opacity: 0, rotate: -1 }}
         animate={{ y: 0, opacity: 1, rotate: 0 }}
         exit={{ y: 30, opacity: 0 }}
         onClick={(event) => event.stopPropagation()}
-        className="receipt-paper w-full max-w-sm p-6 text-cafe-ink"
+        className="receipt-paper w-full max-w-md p-6 text-cafe-ink"
       >
+        <button
+          onClick={closeWhenSigned}
+          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-cafe-cream text-cafe-espresso transition active:scale-95"
+          aria-label="Fechar recibo"
+        >
+          <X size={18} />
+        </button>
         <div className="text-center">
           <Coffee className="mx-auto mb-2 text-cafe-espresso" />
           <h2 className="font-serif text-3xl font-bold">Café 22</h2>
@@ -678,9 +929,45 @@ function ReceiptModal({ item, onClose }) {
           <InfoLine label="Total" value={item.price} />
         </div>
         <p className="text-center text-sm leading-6 text-cafe-muted">{item.description}</p>
+        <div className="mt-5 rounded-2xl border border-dashed border-cafe-espresso/35 bg-cafe-cream p-3">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">
+              <PenLine size={15} />
+              Assinatura
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                signatureRef.current?.clear();
+                setSigned(false);
+              }}
+              className="grid h-8 w-8 place-items-center rounded-full bg-cafe-paper text-cafe-espresso"
+              aria-label="Limpar assinatura"
+            >
+              <Eraser size={15} />
+            </button>
+          </div>
+          <div className="h-28 overflow-hidden rounded-xl bg-cafe-paper">
+            <SignatureCanvas
+              ref={signatureRef}
+              penColor="#2b1a14"
+              onEnd={() => setSigned(!signatureRef.current?.isEmpty())}
+              canvasProps={{
+                className: "h-full w-full",
+                "aria-label": "Assinar recebimento do pedido",
+              }}
+            />
+          </div>
+          <p className="mt-2 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-cafe-muted">
+            {signed ? "recebimento assinado" : "assine para confirmar o recebimento"}
+          </p>
+        </div>
         <button
-          onClick={onClose}
-          className="mt-6 w-full rounded-2xl bg-cafe-espresso px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-cafe-paper"
+          onClick={closeWhenSigned}
+          className={cn(
+            "mt-6 w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.16em] transition",
+            signed ? "bg-cafe-espresso text-cafe-paper active:scale-[0.99]" : "bg-cafe-line text-cafe-muted",
+          )}
         >
           Servir na mesa
         </button>

@@ -62,6 +62,14 @@ img {
   background-size: auto, auto, 42px 42px, 42px 42px;
 }
 
+.cafe-counter-pattern {
+  background:
+    linear-gradient(90deg, rgba(255, 248, 236, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 248, 236, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 24% 28%, rgba(216, 155, 53, 0.2), transparent 14rem);
+  background-size: 32px 32px, 32px 32px, auto;
+}
+
 .eyebrow {
   font-size: 0.72rem;
   font-weight: 900;
@@ -95,6 +103,7 @@ img {
   background: #fff8ec;
   padding: 1.15rem;
   box-shadow: 0 18px 45px rgba(43, 26, 20, 0.11);
+  will-change: transform;
 }
 
 .icon-action {
@@ -110,6 +119,10 @@ img {
 
 .icon-action:active {
   transform: scale(0.94);
+}
+
+.icon-action:disabled {
+  cursor: wait;
 }
 
 .receipt-paper {
