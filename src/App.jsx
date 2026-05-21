@@ -21,9 +21,9 @@ import {
   Home,
   Image as ImageIcon,
   MessageCircle,
-  Monitor,
   Pause,
   PenLine,
+  Phone,
   Play,
   Radio,
   ReceiptText,
@@ -32,6 +32,7 @@ import {
   Stamp,
   Trophy,
   Utensils,
+  Video,
   X,
 } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -128,10 +129,24 @@ function useRelationshipTime() {
     const totalHours = Math.floor(totalMinutes / 60);
     const totalDays = Math.floor(totalHours / 24);
 
+    let years = now.getFullYear() - startDate.getFullYear();
+    let months = now.getMonth() - startDate.getMonth();
+    let days = now.getDate() - startDate.getDate();
+
+    if (days < 0) {
+      const previousMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      days += previousMonthLastDay;
+      months -= 1;
+    }
+    if (months < 0) {
+      months += 12;
+      years -= 1;
+    }
+
     return {
-      years: Math.floor(totalDays / 365),
-      months: Math.floor((totalDays % 365) / 30),
-      days: (totalDays % 365) % 30,
+      years: Math.max(0, years),
+      months: Math.max(0, months),
+      days: Math.max(0, days),
       hours: totalHours % 24,
       minutes: totalMinutes % 60,
       seconds: totalSeconds % 60,
@@ -182,7 +197,7 @@ function Header({ activeTab, setActiveTab }) {
           </span>
           <span>
             <span className="block font-serif text-2xl font-bold leading-none">Café 22</span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cafe-muted">
+            <span className="mt-1 hidden text-xs font-semibold uppercase tracking-[0.18em] text-cafe-muted sm:block">
               aberto desde 22/11/2025
             </span>
           </span>
@@ -194,8 +209,8 @@ function Header({ activeTab, setActiveTab }) {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-bold transition",
-                activeTab === item.id ? "bg-cafe-espresso text-cafe-paper" : "text-cafe-muted hover:text-cafe-ink",
+                "rounded-full px-4 py-2 text-sm font-bold transition-colors active:scale-95",
+                activeTab === item.id ? "bg-cafe-espresso text-cafe-paper" : "text-cafe-muted",
               )}
             >
               {item.label}
@@ -219,13 +234,13 @@ function BottomNav({ activeTab, setActiveTab }) {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-bold transition",
+                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl transition-colors active:scale-95",
                 isActive ? "bg-cafe-espresso text-cafe-paper" : "text-cafe-muted",
               )}
               aria-label={item.label}
             >
-              <Icon size={19} strokeWidth={2.4} />
-              <span>{item.label}</span>
+              <Icon size={18} strokeWidth={2.4} className="shrink-0" />
+              <span className="w-full truncate text-center text-[10px] font-bold">{item.label}</span>
             </button>
           );
         })}
@@ -253,20 +268,24 @@ function Balcao({ setActiveTab }) {
 
   return (
     <Page className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-      <section className="overflow-hidden rounded-[1.6rem] border border-cafe-line bg-cafe-paper shadow-cafe">
-        <div className="relative min-h-[390px]">
-          <img src={acervoHero.src} alt={acervoHero.alt} className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-cafe-espresso via-cafe-espresso/50 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-6 text-cafe-paper sm:p-8">
-            <p className="mb-3 inline-flex rounded-full bg-cafe-honey px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cafe-espresso">
-              pedido especial em preparo
-            </p>
-            <h1 className="max-w-xl font-serif text-5xl font-bold leading-[0.95] sm:text-6xl">
-              Mesa reservada para Melzudin e Advogata.
-            </h1>
-            <p className="mt-4 max-w-lg text-sm leading-6 text-cafe-paper/85 sm:text-base">
-              Uma cafeteria simples, feita para guardar as conversas, fotos, pedidos e pequenos sinais que trouxeram vocês até aqui.
-            </p>
+      <section className="relative flex flex-col-reverse items-center justify-between gap-8 overflow-hidden rounded-[1.6rem] border border-cafe-line bg-cafe-paper p-6 shadow-cafe sm:p-10 md:flex-row">
+        <div className="relative z-10 flex w-full flex-col items-start text-cafe-ink md:w-1/2">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cafe-line/50 bg-cafe-cream px-3 py-1.5 shadow-sm">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-cafe-honey" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cafe-espresso">Mesa ocupada</span>
+          </div>
+          <h1 className="text-balance font-serif text-4xl font-bold leading-[1.1] sm:text-5xl">Mesa reservada para Melzudin e Advogata.</h1>
+          <p className="mt-4 max-w-sm text-balance text-sm leading-6 text-cafe-muted">
+            Uma cafeteria simples, feita para guardar as conversas, fotos, pedidos e pequenos sinais que trouxeram vocês até aqui.
+          </p>
+        </div>
+        <div className="relative flex w-full justify-center md:w-1/2 md:justify-end">
+          <div className="relative rotate-3 transition-transform duration-300 md:hover:rotate-1">
+            <div className="absolute -inset-1 rounded-2xl bg-black/5 blur-md" />
+            <div className="relative rounded-2xl border-[6px] border-white bg-white p-2 pb-10 shadow-xl">
+              <img src={acervoHero.src} alt={acervoHero.alt} className="h-64 w-64 rounded-xl object-cover sepia-[10%] grayscale-[20%] sm:h-72 sm:w-72" />
+              <span className="absolute bottom-3 right-4 -rotate-2 font-serif text-sm text-cafe-espresso/80">nossa constante.</span>
+            </div>
           </div>
         </div>
       </section>
@@ -274,6 +293,7 @@ function Balcao({ setActiveTab }) {
       <aside className="grid gap-5">
         <TimerCard time={time} />
         <RadioCard />
+        <MensagemSurpresa />
         <div className="grid grid-cols-2 gap-3">
           <button onClick={() => setActiveTab("menu")} className="action-card bg-cafe-espresso text-cafe-paper">
             <ReceiptText size={24} />
@@ -286,6 +306,34 @@ function Balcao({ setActiveTab }) {
         </div>
       </aside>
     </Page>
+  );
+}
+
+function MensagemSurpresa() {
+  const motivos = [
+    "Amo como você fica concentrada jogando Switch.",
+    "Esse café me lembra do dia em que a ficha da candidatura foi enviada.",
+    "A advogata mais linda que já pisou nesse café.",
+    "Seu abraço sempre resolve o caos do dia.",
+    "Toda conversa com você vira capítulo favorito.",
+  ];
+
+  const sortear = () => {
+    const frase = motivos[Math.floor(Math.random() * motivos.length)];
+    toast("Mensagem no fundo da xícara", {
+      description: `"${frase}"`,
+    });
+  };
+
+  return (
+    <button
+      onClick={sortear}
+      className="action-card border border-cafe-honey bg-cafe-honey/20 text-cafe-espresso"
+      aria-label="Olhar fundo da xícara"
+    >
+      <Coffee size={24} />
+      <span>Olhar fundo da xícara</span>
+    </button>
   );
 }
 
@@ -371,14 +419,29 @@ function Cardapio({ onOrder }) {
   const [forbiddenClicks, setForbiddenClicks] = useState(0);
   const [secretUnlocked, setSecretUnlocked] = useState(false);
   const [preparingItem, setPreparingItem] = useState(null);
-  const [playClick] = useSound("/musica.mp3", {
-    volume: 0.06,
-    sprite: { order: [0, 650] },
-  });
+  const [soundProfile, setSoundProfile] = useState("classic");
+  const [playClick] = useSound("/musica.mp3", { volume: 0.2 });
+
+  const playOrderSound = () => {
+    try {
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = soundProfile === "retro" ? "square" : soundProfile === "soft" ? "sine" : "triangle";
+      oscillator.frequency.value = soundProfile === "retro" ? 510 : soundProfile === "soft" ? 410 : 620;
+      gain.gain.value = 0.03;
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.14);
+    } catch {
+      playClick();
+    }
+  };
 
   const prepareOrder = (item) => {
     setPreparingItem(item.name);
-    playClick({ id: "order" });
+    playOrderSound();
 
     toast.promise(
       new Promise((resolve) => {
@@ -432,8 +495,30 @@ function Cardapio({ onOrder }) {
       <SectionTitle
         eyebrow="cardapio da casa"
         title="Pedidos que parecem café, mas guardam história."
-        description="Escolha no balcao, aguarde o preparo e retire o recibo afetivo quando o pedido ficar pronto."
+        description="Escolha no balcao, aguarde o preparo e retire o recibo afetivo quando o pedido ficar pronto. Agora voce pode escolher o som de confirmacao."
       />
+      <div className="mb-4 rounded-2xl border border-cafe-line bg-cafe-paper p-3">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">som do pedido</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {[
+            ["classic", "Classico"],
+            ["retro", "Retro"],
+            ["soft", "Suave"],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setSoundProfile(id)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-bold transition",
+                soundProfile === id ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper" : "border-cafe-line bg-cafe-cream",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -446,7 +531,7 @@ function Cardapio({ onOrder }) {
             >
               <div className="flex items-start justify-between gap-4">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-cafe-cream text-cafe-espresso">
-                  <Icon size={23} />
+                  <Icon size={23} className={cn(item.icon === Heart && "animate-pulse text-cafe-cherry")} />
                 </span>
                 <span className="rounded-full bg-cafe-honey/20 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-cafe-espresso">
                   {item.category}
@@ -475,41 +560,20 @@ function Cardapio({ onOrder }) {
 
 function CardapioHeader() {
   return (
-    <section className="relative mb-7 min-h-[13rem] overflow-hidden rounded-[1.45rem] border border-[#43291f] bg-cafe-espresso p-5 text-cafe-paper shadow-cafe sm:min-h-[14rem] sm:p-6">
+    <section className="relative mb-7 overflow-hidden rounded-[1.45rem] border border-[#43291f] bg-cafe-espresso p-5 text-cafe-paper shadow-cafe sm:p-6">
       <div className="absolute inset-0 opacity-35 cafe-counter-pattern" />
-      <div className="absolute bottom-0 left-0 h-20 w-full border-t-[7px] border-cafe-line bg-[#21130e]" />
+      <div className="absolute bottom-0 left-0 h-14 w-full border-t-[7px] border-cafe-line bg-[#21130e]" />
 
-      <div className="absolute right-5 top-5 z-20 text-right sm:right-6 sm:top-6">
+      <div className="relative z-20 text-center sm:text-left">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-paper/55">senha 22</p>
         <h2 className="font-serif text-3xl font-bold leading-tight text-cafe-honey sm:text-4xl">Area de Pedidos</h2>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-cafe-paper/65">aguarde ser chamada</p>
-      </div>
-
-      <div className="relative z-10 flex min-h-[11rem] items-end justify-between gap-4 pr-0 pt-14 sm:pr-64 sm:pt-4">
-        <div className="flex items-end gap-5 sm:gap-8">
-          <div className="flex flex-col items-center">
-            <div className="relative h-20 w-24 rounded-t-2xl border border-white/20 bg-[#c9c4bc] shadow-[inset_0_-10px_0_rgba(0,0,0,0.12)]">
-              <div className="mx-auto mt-3 h-2 w-14 rounded-full bg-[#5f5a55]" />
-              <div className="absolute bottom-4 left-1/2 h-5 w-9 -translate-x-1/2 rounded-b-lg bg-[#3c3733]" />
-            </div>
-            <div className="h-11 w-20 rounded-b-xl bg-[#9b958c]" />
-            <div className="-mt-2 grid h-8 w-10 place-items-center rounded-b-full border border-cafe-paper/50 bg-cafe-espresso text-cafe-paper">
-              <Coffee size={19} />
-            </div>
-          </div>
-
-          <div className="mb-2 hidden flex-col items-center sm:flex">
-            <Monitor className="text-cafe-cream" size={43} />
-            <div className="h-8 w-14 rounded-b-lg bg-[#5b5048]" />
-          </div>
-
-          <div className="mb-1 flex items-end gap-2">
-            <span className="grid h-11 w-11 place-items-center rounded-full border border-cafe-line/60 bg-cafe-paper text-cafe-espresso">
-              <CupSoda size={22} />
-            </span>
-            <span className="h-8 w-5 rounded-t-full bg-cafe-honey/90" />
-            <span className="h-5 w-12 rounded-full bg-cafe-paper/85" />
-          </div>
+        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-cafe-paper/65">selecione seu pedido no cardápio</p>
+        <div className="mt-4 flex items-center justify-center gap-2 sm:justify-start">
+          <span className="grid h-11 w-11 place-items-center rounded-full border border-cafe-line/60 bg-cafe-paper text-cafe-espresso">
+            <Coffee size={20} />
+          </span>
+          <span className="h-8 w-5 rounded-t-full bg-cafe-honey/90" />
+          <span className="h-5 w-12 rounded-full bg-cafe-paper/85" />
         </div>
       </div>
     </section>
@@ -573,7 +637,7 @@ function FeatureCard(props) {
   return (
     <Wrapper
       onClick={props.onClick}
-      className="flex w-full items-center gap-4 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-4 text-left shadow-cafe transition hover:-translate-y-0.5"
+      className="flex w-full items-center gap-4 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-4 text-left shadow-cafe transition active:scale-[0.99]"
     >
       <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cafe-espresso text-cafe-paper">
         <Icon size={22} />
@@ -601,7 +665,8 @@ function TermosAdvogata() {
   };
 
   return (
-    <article className="rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
+    <article className="relative overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
+      <div className="coffee-ring right-[-30px] top-[-20px]" />
       <div className="mb-4 flex items-center gap-3">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cafe-espresso text-cafe-paper">
           <Scale size={22} />
@@ -668,6 +733,14 @@ function LoyaltyCard() {
 }
 
 function Arquivo({ activeEvent, setSelectedEventId }) {
+  const [conversationOpen, setConversationOpen] = useState(false);
+  const eventIcons = [MessageCircle, Heart, Gamepad2, Scale, Coffee, Sparkles, BookOpen, Camera, Radio, Trophy];
+
+  const openConversation = (eventId) => {
+    setSelectedEventId(eventId);
+    setConversationOpen(true);
+  };
+
   return (
     <Page>
       <SectionTitle
@@ -676,36 +749,102 @@ function Arquivo({ activeEvent, setSelectedEventId }) {
         description="Escolha uma data e releia os detalhes sem transformar WhatsApp em print solto. Aqui tudo vira memória preservada."
       />
 
-      <div className="grid gap-5 lg:grid-cols-[330px_1fr]">
-        <aside className="flex gap-3 overflow-x-auto pb-2 lg:block lg:space-y-3 lg:overflow-visible">
-          {archiveEvents.map((event) => (
-            <button
-              key={event.id}
-              onClick={() => setSelectedEventId(event.id)}
-              className={cn(
-                "min-w-[260px] rounded-[1.2rem] border p-4 text-left transition lg:w-full",
-                event.id === activeEvent.id
-                  ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
-                  : "border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40",
-              )}
-            >
-              <span className="text-xs font-black uppercase tracking-[0.16em] opacity-70">{event.displayDate}</span>
-              <strong className="mt-2 block font-serif text-xl">{event.title}</strong>
-              <span className="mt-1 block text-xs font-bold opacity-70">{event.messages.length} mensagens</span>
-            </button>
-          ))}
+      <div className="grid gap-5">
+        <aside className="space-y-3">
+          {archiveEvents.map((event, index) => {
+            const Icon = eventIcons[index % eventIcons.length];
+            const preview = event.messages?.[event.messages.length - 1]?.text ?? "Toque para abrir a conversa";
+            return (
+              <button
+                key={event.id}
+                onClick={() => openConversation(event.id)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-[1.2rem] border p-4 text-left transition",
+                  event.id === activeEvent.id
+                    ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
+                    : "border-cafe-line bg-cafe-paper text-cafe-ink active:opacity-85",
+                )}
+              >
+                <span
+                  className={cn(
+                    "grid h-11 w-11 shrink-0 place-items-center rounded-full",
+                    event.id === activeEvent.id ? "bg-cafe-paper/20 text-cafe-paper" : "bg-cafe-cream text-cafe-espresso",
+                  )}
+                >
+                  <Icon size={20} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-start justify-between gap-3">
+                    <strong className="truncate font-serif text-xl">{event.title}</strong>
+                    <span className="shrink-0 text-[11px] font-bold opacity-70">{event.displayDate}</span>
+                  </span>
+                  <span className="mt-1 block truncate text-xs font-semibold opacity-80">{preview}</span>
+                  <span className="mt-1 block text-[11px] font-bold opacity-70">{event.messages.length} mensagens</span>
+                </span>
+              </button>
+            );
+          })}
         </aside>
-
-        <CoffeeTalk event={activeEvent} />
       </div>
+      <AnimatePresence>
+        {conversationOpen && <ConversationModal event={activeEvent} onClose={() => setConversationOpen(false)} />}
+      </AnimatePresence>
     </Page>
   );
 }
 
-function CoffeeTalk({ event }) {
+function ConversationModal({ event, onClose }) {
   return (
-    <article className="overflow-hidden rounded-[1.6rem] border border-[#d8c5ae] bg-[#efe3d2] shadow-cafe">
-      <div className="border-b border-white/10 bg-[#241812] p-4 text-cafe-paper sm:p-5">
+    <Motion.div
+      className="fixed inset-0 z-[70] bg-cafe-espresso/70 p-0 sm:grid sm:place-items-center sm:p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <Motion.div
+        initial={{ y: 24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 20, opacity: 0 }}
+        onClick={(event) => event.stopPropagation()}
+        className="h-[100dvh] w-full overflow-hidden bg-[#efe3d2] sm:h-auto sm:max-w-5xl sm:rounded-[1.2rem]"
+      >
+        <div className="flex items-center justify-between border-b border-cafe-line/60 bg-[#f8f0e5] px-3 py-2 sm:px-4 sm:py-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <button
+              onClick={onClose}
+              className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso"
+              aria-label="Voltar para lista de conversas"
+            >
+              <ChevronRight className="rotate-180" size={18} />
+            </button>
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-cafe-espresso text-cafe-paper">
+              <MessageCircle size={18} />
+            </span>
+            <div className="min-w-0">
+              <strong className="block truncate text-sm leading-none text-cafe-ink">{event.title}</strong>
+              <span className="text-[11px] font-semibold text-cafe-muted">online</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso" aria-label="Ligar">
+              <Phone size={16} />
+            </button>
+            <button className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso" aria-label="Videochamada">
+              <Video size={16} />
+            </button>
+          </div>
+        </div>
+        <CoffeeTalk event={event} compact />
+      </Motion.div>
+    </Motion.div>
+  );
+}
+
+function CoffeeTalk({ event, compact = false }) {
+  return (
+    <article className={cn("overflow-hidden border border-[#d8c5ae] bg-[#efe3d2] shadow-cafe", compact ? "h-[calc(100dvh-58px)] rounded-none sm:h-auto sm:rounded-[1.6rem]" : "rounded-[1.6rem]")}>
+      <div className={cn("border-b border-white/10 bg-[#241812] p-4 text-cafe-paper sm:p-5", compact && "hidden sm:block")}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-honey">{event.label}</p>
@@ -743,7 +882,7 @@ function CoffeeTalk({ event }) {
             </div>
             <span className="rounded-full bg-[#d9fdd3] px-3 py-1 text-xs font-bold text-[#275d3b]">online</span>
           </div>
-          <div className="max-h-[72vh] overflow-y-auto px-3 py-5 sm:px-5">
+          <div className="max-h-[64vh] overflow-y-auto px-3 py-5 sm:px-5 lg:max-h-[72vh]">
             <div className="mx-auto flex max-w-3xl flex-col gap-2">
               {event.messages.map((message, index) => (
                 <ChatBubble key={`${message.stamp}-${index}`} message={message} />
@@ -835,7 +974,7 @@ function AcervoFotos() {
               "min-w-[250px] rounded-[1.1rem] border p-3 text-left transition",
               event.id === activeEvent.id
                 ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
-                : "border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40",
+                : "border-cafe-line bg-cafe-paper text-cafe-ink active:opacity-85",
             )}
           >
             <span className="text-xs font-black uppercase tracking-[0.14em] opacity-70">{event.displayDate}</span>
@@ -909,13 +1048,7 @@ function ReceiptModal({ item, onClose }) {
         onClick={(event) => event.stopPropagation()}
         className="receipt-paper w-full max-w-md p-6 text-cafe-ink"
       >
-        <button
-          onClick={closeWhenSigned}
-          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-cafe-cream text-cafe-espresso transition active:scale-95"
-          aria-label="Fechar recibo"
-        >
-          <X size={18} />
-        </button>
+        <div className="coffee-ring bottom-[-35px] right-[-35px]" />
         <div className="text-center">
           <Coffee className="mx-auto mb-2 text-cafe-espresso" />
           <h2 className="font-serif text-3xl font-bold">Café 22</h2>
@@ -962,15 +1095,23 @@ function ReceiptModal({ item, onClose }) {
             {signed ? "recebimento assinado" : "assine para confirmar o recebimento"}
           </p>
         </div>
-        <button
-          onClick={closeWhenSigned}
-          className={cn(
-            "mt-6 w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.16em] transition",
-            signed ? "bg-cafe-espresso text-cafe-paper active:scale-[0.99]" : "bg-cafe-line text-cafe-muted",
-          )}
-        >
-          Servir na mesa
-        </button>
+        <div className="mt-6 grid grid-cols-2 gap-2">
+          <button
+            onClick={onClose}
+            className="w-full rounded-2xl border border-cafe-line bg-cafe-paper px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-cafe-muted transition active:scale-[0.99]"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={closeWhenSigned}
+            className={cn(
+              "w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.16em] transition",
+              signed ? "bg-cafe-espresso text-cafe-paper active:scale-[0.99]" : "bg-cafe-line text-cafe-muted",
+            )}
+          >
+            Servir na mesa
+          </button>
+        </div>
       </Motion.div>
     </Motion.div>
   );

@@ -49,7 +49,7 @@ img {
 }
 
 ::selection {
-  background: #d89b35;
+  background-color: #d8c5ae;
   color: #2b1a14;
 }
 
@@ -126,11 +126,8 @@ img {
 }
 
 .receipt-paper {
+  background-color: #fcf9f2;
   position: relative;
-  background:
-    linear-gradient(#fff8ec, #fff8ec) padding-box,
-    repeating-linear-gradient(90deg, transparent 0 10px, rgba(43, 26, 20, 0.18) 10px 12px) border-box;
-  border: 0 solid transparent;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
 }
 
@@ -139,20 +136,19 @@ img {
   content: "";
   position: absolute;
   left: 0;
-  width: 100%;
-  height: 10px;
-  background:
-    linear-gradient(135deg, transparent 8px, #fff8ec 0) 0 0 / 16px 16px,
-    linear-gradient(-135deg, transparent 8px, #fff8ec 0) 0 0 / 16px 16px;
+  right: 0;
+  height: 4px;
+  background-size: 8px 8px;
+  background-image: radial-gradient(circle at 4px 4px, transparent 4px, #fcf9f2 4.5px);
 }
 
 .receipt-paper::before {
-  top: -9px;
+  top: -4px;
   transform: rotate(180deg);
 }
 
 .receipt-paper::after {
-  bottom: -9px;
+  bottom: -4px;
 }
 
 .whatsapp-pattern {
@@ -172,4 +168,14 @@ img {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+.coffee-ring {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 4px solid rgba(139, 90, 43, 0.08);
+  box-shadow: inset 0 0 4px rgba(139, 90, 43, 0.05);
+  pointer-events: none;
+  transform: rotate(15deg);
 }
