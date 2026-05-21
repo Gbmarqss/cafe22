@@ -21,9 +21,9 @@ import {
   Home,
   Image as ImageIcon,
   MessageCircle,
-  Monitor,
   Pause,
   PenLine,
+  Phone,
   Play,
   Radio,
   ReceiptText,
@@ -32,6 +32,7 @@ import {
   Stamp,
   Trophy,
   Utensils,
+  Video,
   X,
 } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -728,6 +729,7 @@ function LoyaltyCard() {
 
 function Arquivo({ activeEvent, setSelectedEventId }) {
   const [conversationOpen, setConversationOpen] = useState(false);
+  const eventIcons = [MessageCircle, Heart, Gamepad2, Scale, Coffee, Sparkles, BookOpen, Camera, Radio, Trophy];
 
   const openConversation = (eventId) => {
     setSelectedEventId(eventId);
@@ -744,22 +746,39 @@ function Arquivo({ activeEvent, setSelectedEventId }) {
 
       <div className="grid gap-5">
         <aside className="space-y-3">
-          {archiveEvents.map((event) => (
-            <button
-              key={event.id}
-              onClick={() => openConversation(event.id)}
-              className={cn(
-                "w-full rounded-[1.2rem] border p-4 text-left transition",
-                event.id === activeEvent.id
-                  ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
-                  : "border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40",
-              )}
-            >
-              <span className="text-xs font-black uppercase tracking-[0.16em] opacity-70">{event.displayDate}</span>
-              <strong className="mt-2 block font-serif text-xl">{event.title}</strong>
-              <span className="mt-1 block text-xs font-bold opacity-70">{event.messages.length} mensagens</span>
-            </button>
-          ))}
+          {archiveEvents.map((event, index) => {
+            const Icon = eventIcons[index % eventIcons.length];
+            const preview = event.messages?.[event.messages.length - 1]?.text ?? "Toque para abrir a conversa";
+            return (
+              <button
+                key={event.id}
+                onClick={() => openConversation(event.id)}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-[1.2rem] border p-4 text-left transition",
+                  event.id === activeEvent.id
+                    ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
+                    : "border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40",
+                )}
+              >
+                <span
+                  className={cn(
+                    "grid h-11 w-11 shrink-0 place-items-center rounded-full",
+                    event.id === activeEvent.id ? "bg-cafe-paper/20 text-cafe-paper" : "bg-cafe-cream text-cafe-espresso",
+                  )}
+                >
+                  <Icon size={20} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-start justify-between gap-3">
+                    <strong className="truncate font-serif text-xl">{event.title}</strong>
+                    <span className="shrink-0 text-[11px] font-bold opacity-70">{event.displayDate}</span>
+                  </span>
+                  <span className="mt-1 block truncate text-xs font-semibold opacity-80">{preview}</span>
+                  <span className="mt-1 block text-[11px] font-bold opacity-70">{event.messages.length} mensagens</span>
+                </span>
+              </button>
+            );
+          })}
         </aside>
       </div>
       <AnimatePresence>
@@ -772,7 +791,7 @@ function Arquivo({ activeEvent, setSelectedEventId }) {
 function ConversationModal({ event, onClose }) {
   return (
     <Motion.div
-      className="fixed inset-0 z-[70] grid place-items-center bg-cafe-espresso/70 p-4"
+      className="fixed inset-0 z-[70] bg-cafe-espresso/70 p-0 sm:grid sm:place-items-center sm:p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -783,26 +802,44 @@ function ConversationModal({ event, onClose }) {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 20, opacity: 0 }}
         onClick={(event) => event.stopPropagation()}
-        className="w-full max-w-5xl"
+        className="h-[100dvh] w-full overflow-hidden bg-[#efe3d2] sm:h-auto sm:max-w-5xl sm:rounded-[1.2rem]"
       >
-        <div className="mb-3 flex justify-end">
-          <button
-            onClick={onClose}
-            className="rounded-full border border-cafe-line bg-cafe-paper px-4 py-2 text-xs font-black uppercase tracking-[0.14em] text-cafe-espresso"
-          >
-            Fechar conversa
-          </button>
+        <div className="flex items-center justify-between border-b border-cafe-line/60 bg-[#f8f0e5] px-3 py-2 sm:px-4 sm:py-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <button
+              onClick={onClose}
+              className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso"
+              aria-label="Voltar para lista de conversas"
+            >
+              <ChevronRight className="rotate-180" size={18} />
+            </button>
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-cafe-espresso text-cafe-paper">
+              <MessageCircle size={18} />
+            </span>
+            <div className="min-w-0">
+              <strong className="block truncate text-sm leading-none text-cafe-ink">{event.title}</strong>
+              <span className="text-[11px] font-semibold text-cafe-muted">online</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso" aria-label="Ligar">
+              <Phone size={16} />
+            </button>
+            <button className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso" aria-label="Videochamada">
+              <Video size={16} />
+            </button>
+          </div>
         </div>
-        <CoffeeTalk event={event} />
+        <CoffeeTalk event={event} compact />
       </Motion.div>
     </Motion.div>
   );
 }
 
-function CoffeeTalk({ event }) {
+function CoffeeTalk({ event, compact = false }) {
   return (
-    <article className="overflow-hidden rounded-[1.6rem] border border-[#d8c5ae] bg-[#efe3d2] shadow-cafe">
-      <div className="border-b border-white/10 bg-[#241812] p-4 text-cafe-paper sm:p-5">
+    <article className={cn("overflow-hidden border border-[#d8c5ae] bg-[#efe3d2] shadow-cafe", compact ? "h-[calc(100dvh-58px)] rounded-none sm:h-auto sm:rounded-[1.6rem]" : "rounded-[1.6rem]")}>
+      <div className={cn("border-b border-white/10 bg-[#241812] p-4 text-cafe-paper sm:p-5", compact && "hidden sm:block")}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-honey">{event.label}</p>
