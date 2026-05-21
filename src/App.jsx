@@ -197,7 +197,7 @@ function Header({ activeTab, setActiveTab }) {
           </span>
           <span>
             <span className="block font-serif text-2xl font-bold leading-none">Café 22</span>
-            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cafe-muted">
+            <span className="mt-1 hidden text-xs font-semibold uppercase tracking-[0.18em] text-cafe-muted sm:block">
               aberto desde 22/11/2025
             </span>
           </span>
@@ -209,8 +209,8 @@ function Header({ activeTab, setActiveTab }) {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-bold transition",
-                activeTab === item.id ? "bg-cafe-espresso text-cafe-paper" : "text-cafe-muted hover:text-cafe-ink",
+                "rounded-full px-4 py-2 text-sm font-bold transition-colors active:scale-95",
+                activeTab === item.id ? "bg-cafe-espresso text-cafe-paper" : "text-cafe-muted",
               )}
             >
               {item.label}
@@ -234,13 +234,13 @@ function BottomNav({ activeTab, setActiveTab }) {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-bold transition",
+                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl transition-colors active:scale-95",
                 isActive ? "bg-cafe-espresso text-cafe-paper" : "text-cafe-muted",
               )}
               aria-label={item.label}
             >
-              <Icon size={19} strokeWidth={2.4} />
-              <span>{item.label}</span>
+              <Icon size={18} strokeWidth={2.4} className="shrink-0" />
+              <span className="w-full truncate text-center text-[10px] font-bold">{item.label}</span>
             </button>
           );
         })}
@@ -268,20 +268,24 @@ function Balcao({ setActiveTab }) {
 
   return (
     <Page className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-      <section className="overflow-hidden rounded-[1.6rem] border border-cafe-line bg-cafe-paper shadow-cafe">
-        <div className="relative min-h-[390px]">
-          <img src={acervoHero.src} alt={acervoHero.alt} className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-cafe-espresso via-cafe-espresso/50 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-6 text-cafe-paper sm:p-8">
-            <p className="mb-3 inline-flex rounded-full bg-cafe-honey px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cafe-espresso">
-              pedido especial em preparo
-            </p>
-            <h1 className="max-w-xl font-serif text-5xl font-bold leading-[0.95] sm:text-6xl">
-              Mesa reservada para Melzudin e Advogata.
-            </h1>
-            <p className="mt-4 max-w-lg text-sm leading-6 text-cafe-paper/85 sm:text-base">
-              Uma cafeteria simples, feita para guardar as conversas, fotos, pedidos e pequenos sinais que trouxeram vocês até aqui.
-            </p>
+      <section className="relative flex flex-col-reverse items-center justify-between gap-8 overflow-hidden rounded-[1.6rem] border border-cafe-line bg-cafe-paper p-6 shadow-cafe sm:p-10 md:flex-row">
+        <div className="relative z-10 flex w-full flex-col items-start text-cafe-ink md:w-1/2">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cafe-line/50 bg-cafe-cream px-3 py-1.5 shadow-sm">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-cafe-honey" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cafe-espresso">Mesa ocupada</span>
+          </div>
+          <h1 className="text-balance font-serif text-4xl font-bold leading-[1.1] sm:text-5xl">Mesa reservada para Melzudin e Advogata.</h1>
+          <p className="mt-4 max-w-sm text-balance text-sm leading-6 text-cafe-muted">
+            Uma cafeteria simples, feita para guardar as conversas, fotos, pedidos e pequenos sinais que trouxeram vocês até aqui.
+          </p>
+        </div>
+        <div className="relative flex w-full justify-center md:w-1/2 md:justify-end">
+          <div className="relative rotate-3 transition-transform duration-300 md:hover:rotate-1">
+            <div className="absolute -inset-1 rounded-2xl bg-black/5 blur-md" />
+            <div className="relative rounded-2xl border-[6px] border-white bg-white p-2 pb-10 shadow-xl">
+              <img src={acervoHero.src} alt={acervoHero.alt} className="h-64 w-64 rounded-xl object-cover sepia-[10%] grayscale-[20%] sm:h-72 sm:w-72" />
+              <span className="absolute bottom-3 right-4 -rotate-2 font-serif text-sm text-cafe-espresso/80">nossa constante.</span>
+            </div>
           </div>
         </div>
       </section>
@@ -527,7 +531,7 @@ function Cardapio({ onOrder }) {
             >
               <div className="flex items-start justify-between gap-4">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-cafe-cream text-cafe-espresso">
-                  <Icon size={23} />
+                  <Icon size={23} className={cn(item.icon === Heart && "animate-pulse text-cafe-cherry")} />
                 </span>
                 <span className="rounded-full bg-cafe-honey/20 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-cafe-espresso">
                   {item.category}
@@ -633,7 +637,7 @@ function FeatureCard(props) {
   return (
     <Wrapper
       onClick={props.onClick}
-      className="flex w-full items-center gap-4 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-4 text-left shadow-cafe transition hover:-translate-y-0.5"
+      className="flex w-full items-center gap-4 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-4 text-left shadow-cafe transition active:scale-[0.99]"
     >
       <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cafe-espresso text-cafe-paper">
         <Icon size={22} />
@@ -661,7 +665,8 @@ function TermosAdvogata() {
   };
 
   return (
-    <article className="rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
+    <article className="relative overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
+      <div className="coffee-ring right-[-30px] top-[-20px]" />
       <div className="mb-4 flex items-center gap-3">
         <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cafe-espresso text-cafe-paper">
           <Scale size={22} />
@@ -757,7 +762,7 @@ function Arquivo({ activeEvent, setSelectedEventId }) {
                   "flex w-full items-center gap-3 rounded-[1.2rem] border p-4 text-left transition",
                   event.id === activeEvent.id
                     ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
-                    : "border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40",
+                    : "border-cafe-line bg-cafe-paper text-cafe-ink active:opacity-85",
                 )}
               >
                 <span
@@ -969,7 +974,7 @@ function AcervoFotos() {
               "min-w-[250px] rounded-[1.1rem] border p-3 text-left transition",
               event.id === activeEvent.id
                 ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
-                : "border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40",
+                : "border-cafe-line bg-cafe-paper text-cafe-ink active:opacity-85",
             )}
           >
             <span className="text-xs font-black uppercase tracking-[0.14em] opacity-70">{event.displayDate}</span>
@@ -1043,6 +1048,7 @@ function ReceiptModal({ item, onClose }) {
         onClick={(event) => event.stopPropagation()}
         className="receipt-paper w-full max-w-md p-6 text-cafe-ink"
       >
+        <div className="coffee-ring bottom-[-35px] right-[-35px]" />
         <div className="text-center">
           <Coffee className="mx-auto mb-2 text-cafe-espresso" />
           <h2 className="font-serif text-3xl font-bold">Café 22</h2>
