@@ -128,10 +128,24 @@ function useRelationshipTime() {
     const totalHours = Math.floor(totalMinutes / 60);
     const totalDays = Math.floor(totalHours / 24);
 
+    let years = now.getFullYear() - startDate.getFullYear();
+    let months = now.getMonth() - startDate.getMonth();
+    let days = now.getDate() - startDate.getDate();
+
+    if (days < 0) {
+      const previousMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      days += previousMonthLastDay;
+      months -= 1;
+    }
+    if (months < 0) {
+      months += 12;
+      years -= 1;
+    }
+
     return {
-      years: Math.floor(totalDays / 365),
-      months: Math.floor((totalDays % 365) / 30),
-      days: (totalDays % 365) % 30,
+      years: Math.max(0, years),
+      months: Math.max(0, months),
+      days: Math.max(0, days),
       hours: totalHours % 24,
       minutes: totalMinutes % 60,
       seconds: totalSeconds % 60,
@@ -371,14 +385,29 @@ function Cardapio({ onOrder }) {
   const [forbiddenClicks, setForbiddenClicks] = useState(0);
   const [secretUnlocked, setSecretUnlocked] = useState(false);
   const [preparingItem, setPreparingItem] = useState(null);
-  const [playClick] = useSound("/musica.mp3", {
-    volume: 0.06,
-    sprite: { order: [0, 650] },
-  });
+  const [soundProfile, setSoundProfile] = useState("classic");
+  const [playClick] = useSound("/musica.mp3", { volume: 0.2 });
+
+  const playOrderSound = () => {
+    try {
+      const context = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = soundProfile === "retro" ? "square" : soundProfile === "soft" ? "sine" : "triangle";
+      oscillator.frequency.value = soundProfile === "retro" ? 510 : soundProfile === "soft" ? 410 : 620;
+      gain.gain.value = 0.03;
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.14);
+    } catch {
+      playClick();
+    }
+  };
 
   const prepareOrder = (item) => {
     setPreparingItem(item.name);
-    playClick({ id: "order" });
+    playOrderSound();
 
     toast.promise(
       new Promise((resolve) => {
@@ -432,8 +461,30 @@ function Cardapio({ onOrder }) {
       <SectionTitle
         eyebrow="cardapio da casa"
         title="Pedidos que parecem café, mas guardam história."
-        description="Escolha no balcao, aguarde o preparo e retire o recibo afetivo quando o pedido ficar pronto."
+        description="Escolha no balcao, aguarde o preparo e retire o recibo afetivo quando o pedido ficar pronto. Agora voce pode escolher o som de confirmacao."
       />
+      <div className="mb-4 rounded-2xl border border-cafe-line bg-cafe-paper p-3">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">som do pedido</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {[
+            ["classic", "Classico"],
+            ["retro", "Retro"],
+            ["soft", "Suave"],
+          ].map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setSoundProfile(id)}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-bold transition",
+                soundProfile === id ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper" : "border-cafe-line bg-cafe-cream",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -677,7 +728,7 @@ function Arquivo({ activeEvent, setSelectedEventId }) {
       />
 
       <div className="grid gap-5 lg:grid-cols-[330px_1fr]">
-        <aside className="flex gap-3 overflow-x-auto pb-2 lg:block lg:space-y-3 lg:overflow-visible">
+        <aside className="flex gap-3 overflow-x-auto pb-2 pl-1 pr-1 lg:block lg:max-h-[74vh] lg:space-y-3 lg:overflow-y-auto lg:pr-2">
           {archiveEvents.map((event) => (
             <button
               key={event.id}
@@ -743,7 +794,7 @@ function CoffeeTalk({ event }) {
             </div>
             <span className="rounded-full bg-[#d9fdd3] px-3 py-1 text-xs font-bold text-[#275d3b]">online</span>
           </div>
-          <div className="max-h-[72vh] overflow-y-auto px-3 py-5 sm:px-5">
+          <div className="max-h-[64vh] overflow-y-auto px-3 py-5 sm:px-5 lg:max-h-[72vh]">
             <div className="mx-auto flex max-w-3xl flex-col gap-2">
               {event.messages.map((message, index) => (
                 <ChatBubble key={`${message.stamp}-${index}`} message={message} />
@@ -962,15 +1013,23 @@ function ReceiptModal({ item, onClose }) {
             {signed ? "recebimento assinado" : "assine para confirmar o recebimento"}
           </p>
         </div>
-        <button
-          onClick={closeWhenSigned}
-          className={cn(
-            "mt-6 w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.16em] transition",
-            signed ? "bg-cafe-espresso text-cafe-paper active:scale-[0.99]" : "bg-cafe-line text-cafe-muted",
-          )}
-        >
-          Servir na mesa
-        </button>
+        <div className="mt-6 grid grid-cols-2 gap-2">
+          <button
+            onClick={onClose}
+            className="w-full rounded-2xl border border-cafe-line bg-cafe-paper px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-cafe-muted transition active:scale-[0.99]"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={closeWhenSigned}
+            className={cn(
+              "w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.16em] transition",
+              signed ? "bg-cafe-espresso text-cafe-paper active:scale-[0.99]" : "bg-cafe-line text-cafe-muted",
+            )}
+          >
+            Servir na mesa
+          </button>
+        </div>
       </Motion.div>
     </Motion.div>
   );
