@@ -9,6 +9,7 @@ import {
   Ban,
   BookOpen,
   CalendarCheck,
+  CalendarDays,
   Camera,
   ChevronRight,
   CheckCircle2,
@@ -23,6 +24,8 @@ import {
   Home,
   Image as ImageIcon,
   MessageCircle,
+  Hash,
+  Package,
   Pause,
   PenLine,
   Phone,
@@ -34,6 +37,7 @@ import {
   SkipForward,
   Sparkles,
   Stamp,
+  Tag,
   Trophy,
   Utensils,
   Video,
@@ -1325,114 +1329,141 @@ function ChatBubble({ message }) {
 
 function AcervoFotos() {
   const [selectedEventId, setSelectedEventId] = useState(photoEvents[0]?.id);
-  const [openPhoto, setOpenPhoto] = useState(null);
   const activeEvent = photoEvents.find((event) => event.id === selectedEventId) ?? photoEvents[0];
 
-  if (!activeEvent) {
-    return null;
-  }
+  if (!activeEvent) return null;
 
   return (
     <Page>
-      <SectionTitle
-        eyebrow="acervo da cafeteria"
-        title="Cada pasta virou uma memória com nome, contexto e lugar próprio."
-        description="Escolha um evento para ver as fotos daquele capítulo da Mesa 22, sem misturar as histórias."
-      />
+      <div className="mb-6 max-w-3xl">
+        <p className="eyebrow flex items-center gap-2">
+          <Package size={14} /> estoque da mesa 22
+        </p>
+        <h1 className="mt-2 font-serif text-4xl font-bold leading-tight sm:text-5xl">Lotes de Memórias</h1>
+        <p className="mt-3 text-sm leading-6 text-cafe-muted">
+          Aqui, cada dia importante é armazenado como um lote único de café especial. Fichas catalogadas, amostras
+          preservadas e prontas para consumo.
+        </p>
+      </div>
 
-      <section className="mb-5 overflow-hidden rounded-[1.45rem] border border-cafe-line bg-cafe-paper shadow-cafe">
-        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative min-h-[200px] sm:min-h-[270px]">
-            <img src={acervoHero.src} alt={acervoHero.alt} className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-cafe-espresso/80 via-cafe-espresso/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 p-4 text-cafe-paper sm:p-5">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-cafe-honey">foto da casa</p>
-              <h2 className="mt-1 font-serif text-2xl sm:text-3xl font-bold">Pebinhas taiobas</h2>
-            </div>
-          </div>
-          <div className="flex flex-col justify-between gap-4 p-4 sm:gap-5 sm:p-6">
-            <div>
-              <p className="eyebrow">pasta do acervo</p>
-              <p className="mt-1 text-sm font-black uppercase tracking-[0.14em] text-cafe-honey">
-                {activeEvent.folderName}
-              </p>
-              <h3 className="mt-2 font-serif text-2xl sm:text-3xl font-bold leading-tight break-words">{activeEvent.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-cafe-muted break-words">{activeEvent.summary}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <InfoMetric value={photoEvents.length} label="eventos" />
-              <InfoMetric value={activeEvent.images.length} label="fotos" />
-              <InfoMetric value="22" label="mesa" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mb-5 flex gap-3 overflow-x-auto pb-2">
-        {photoEvents.map((event) => (
+      <div className="mb-6 flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+        {photoEvents.map((event, index) => (
           <button
             key={event.id}
             onClick={() => setSelectedEventId(event.id)}
             className={cn(
-              "min-w-[250px] rounded-[1.1rem] border p-3 text-left transition",
+              "min-w-[180px] shrink-0 rounded-[1.2rem] border-2 p-3 text-left transition-all",
               event.id === activeEvent.id
-                ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
-                : "border-cafe-line bg-cafe-paper text-cafe-ink active:opacity-85",
+                ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper shadow-md"
+                : "border-dashed border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40 active:scale-95",
             )}
           >
-            <span className="text-xs font-black uppercase tracking-[0.14em] opacity-70">{event.displayDate}</span>
-            <strong className="mt-1 block font-serif text-xl leading-tight">{event.folderName}</strong>
-            <span className="mt-1 block text-sm font-semibold leading-5 opacity-80">{event.title}</span>
-            <span className="mt-1 flex items-center gap-1 text-xs font-bold opacity-70">
-              <Camera size={13} />
-              {event.images.length} foto{event.images.length === 1 ? "" : "s"}
+            <div className="mb-2 flex items-center justify-between">
+              <span
+                className={cn(
+                  "text-[10px] font-black uppercase tracking-widest",
+                  event.id === activeEvent.id ? "text-cafe-honey" : "text-cafe-muted",
+                )}
+              >
+                Lote #{String(index + 1).padStart(2, "0")}
+              </span>
+              <Tag size={14} className={event.id === activeEvent.id ? "text-cafe-honey" : "text-cafe-muted"} />
+            </div>
+            <strong className="block truncate font-serif text-lg leading-tight">{event.folderName}</strong>
+            <span className="mt-1 flex items-center gap-1.5 text-[11px] font-bold opacity-70">
+              <CalendarDays size={12} /> {event.displayDate}
             </span>
           </button>
         ))}
       </div>
 
+      <section className="mb-6 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-1 shadow-cafe">
+        <div className="rounded-[1.2rem] border-2 border-dashed border-cafe-line/50 bg-[#fcf9f2] p-4 sm:p-6">
+          <div className="mb-4 flex items-center justify-between border-b border-cafe-line/50 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-cafe-cream text-cafe-espresso">
+                <Archive size={24} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cafe-muted">Ficha Técnica</p>
+                <h2 className="truncate font-serif text-2xl font-bold">{activeEvent.folderName}</h2>
+              </div>
+            </div>
+            <div className="hidden sm:block">
+              <BarcodePattern />
+            </div>
+          </div>
+
+          <p className="text-sm leading-6 text-cafe-ink/80">{activeEvent.summary}</p>
+
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+            <StockMetric label="Status" value="Estocado" />
+            <StockMetric label="Colheita" value={activeEvent.displayDate} />
+            <StockMetric label="Variedade" value={activeEvent.title} />
+            <StockMetric label="Amostras" value={`${activeEvent.images.length} fotos`} />
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {activeEvent.images.map((photo, index) => {
           const src = typeof photo === "string" ? photo : photo.src;
           return (
-          <Motion.button
-            key={src}
-            type="button"
-            onClick={() => setOpenPhoto({ eventId: activeEvent.id, index })}
-            whileHover={{ y: -4, rotate: 0 }}
-            className="rounded-[1.2rem] border border-cafe-line bg-cafe-paper p-3 text-left shadow-cafe"
-            style={{ rotate: `${[-1.4, 1.2, -0.6, 1.6, -1, 0.8][index]}deg` }}
-          >
-            <div className="aspect-[4/5] overflow-hidden rounded-xl bg-cafe-cream">
-              <img src={src} alt={`${activeEvent.title} ${index + 1}`} className="h-full w-full object-cover" />
-            </div>
-            <div className="px-2 pb-2 pt-4">
-              <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{activeEvent.label}</span>
-              <h3 className="font-serif text-2xl font-bold">{activeEvent.title}</h3>
-            </div>
-          </Motion.button>
+            <Motion.article
+              key={src}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              className="group relative overflow-hidden rounded-[1.2rem] border border-cafe-line bg-cafe-paper shadow-sm"
+            >
+              <div className="aspect-square w-full border-b border-cafe-line bg-[#fdfbf7] p-3 pb-0">
+                <div className="h-full w-full overflow-hidden rounded-t-xl bg-cafe-cream">
+                  <img
+                    src={src}
+                    alt={`${activeEvent.title} ${index + 1}`}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+
+              <div className="relative bg-cafe-paper p-4">
+                <div className="absolute left-0 top-0 h-[1px] w-full border-t border-dashed border-cafe-line" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-cafe-muted">
+                      <Hash size={10} /> AMOSTRA {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="mt-1 truncate font-serif text-lg font-bold leading-tight text-cafe-ink">{activeEvent.title}</h3>
+                  </div>
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-cafe-honey/30 bg-cafe-honey/10 text-cafe-honey">
+                    <Camera size={14} />
+                  </div>
+                </div>
+              </div>
+            </Motion.article>
           );
         })}
       </div>
-      <AnimatePresence>
-        {openPhoto && (
-          <PhotoFlipModal
-            photoState={openPhoto}
-            events={photoEvents}
-            onClose={() => setOpenPhoto(null)}
-            onChange={setOpenPhoto}
-          />
-        )}
-      </AnimatePresence>
     </Page>
   );
 }
 
-function InfoMetric({ value, label }) {
+function StockMetric({ label, value }) {
   return (
-    <div className="rounded-2xl border border-cafe-line bg-cafe-cream p-2 sm:p-3 text-center flex flex-col justify-center">
-      <strong className="block font-serif text-2xl sm:text-3xl leading-none">{value}</strong>
-      <span className="mt-1 block text-[10px] sm:text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
+    <div className="rounded-xl border border-cafe-line/60 bg-cafe-cream/40 p-2 sm:p-3">
+      <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-cafe-muted">{label}</span>
+      <strong className="mt-0.5 block truncate text-xs sm:text-sm">{value}</strong>
+    </div>
+  );
+}
+
+function BarcodePattern() {
+  return (
+    <div className="flex h-8 items-center gap-[2px] opacity-30 grayscale">
+      {[2, 4, 2, 1, 3, 1, 2, 4, 1, 2, 3, 2, 1, 4, 2, 1].map((w, i) => (
+        <div key={i} className="h-full bg-cafe-ink" style={{ width: `${w}px` }} />
+      ))}
     </div>
   );
 }
