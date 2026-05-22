@@ -9,26 +9,46 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      includeAssets: [
+        'icons/favicon.svg',
+        'icons/favicon-16.png',
+        'icons/favicon-32.png',
+        'icons/apple-touch-icon.png',
+      ],
       manifest: {
+        id: '/',
         name: 'Café 22',
         short_name: 'Café 22',
         description: 'A cafeteria de memórias da Mesa 22',
+        lang: 'pt-BR',
+        start_url: '/',
+        scope: '/',
         theme_color: '#2B1A14',
         background_color: '#F4EADC',
         display: 'standalone',
+        display_override: ['standalone'],
+        orientation: 'portrait',
         icons: [
           {
-            src: '/vite.svg',
+            src: '/icons/icon-192.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png',
+            purpose: 'any',
           },
           {
-            src: '/vite.svg',
+            src: '/icons/icon-512.png',
             sizes: '512x512',
-            type: 'image/svg+xml'
-          }
-        ]
-      }
-    })
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/icons/icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+    }),
   ],
 })
