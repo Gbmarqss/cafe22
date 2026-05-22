@@ -766,20 +766,18 @@ function Cardapio({ onOrder }) {
 
 function CardapioHeader() {
   return (
-    <section className="relative mb-7 overflow-hidden rounded-[1.45rem] border border-[#43291f] bg-cafe-espresso p-5 text-cafe-paper shadow-cafe sm:p-6">
-      <div className="absolute inset-0 opacity-35 cafe-counter-pattern" />
-      <div className="absolute bottom-0 left-0 h-14 w-full border-t-[7px] border-cafe-line bg-[#21130e]" />
-
-      <div className="relative z-20 text-center sm:text-left">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-paper/55">senha 22</p>
-        <h2 className="font-serif text-3xl font-bold leading-tight text-cafe-honey sm:text-4xl">Area de Pedidos</h2>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-cafe-paper/65">selecione seu pedido no cardápio</p>
-        <div className="mt-4 flex items-center justify-center gap-2 sm:justify-start">
-          <span className="grid h-11 w-11 place-items-center rounded-full border border-cafe-line/60 bg-cafe-paper text-cafe-espresso">
-            <Coffee size={20} />
-          </span>
-          <span className="h-8 w-5 rounded-t-full bg-cafe-honey/90" />
-          <span className="h-5 w-12 rounded-full bg-cafe-paper/85" />
+    <section className="relative mb-7 overflow-hidden rounded-[1.45rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe sm:p-6">
+      <div className="absolute -right-12 -top-10 h-36 w-36 rounded-full bg-cafe-honey/15 blur-2xl" />
+      <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-cafe-espresso/10 blur-2xl" />
+      <div className="relative z-10">
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-honey">menu afetivo</p>
+        <h2 className="mt-2 font-serif text-3xl font-bold leading-tight text-cafe-espresso sm:text-4xl">Escolha um pedido com gosto de memória</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-cafe-muted">
+          Cada item foi pensado como um ritual da Mesa 22. Toque no seu favorito, aguarde o preparo e receba o comprovante desse capítulo.
+        </p>
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-cafe-line bg-cafe-cream px-3 py-1.5">
+          <span className="h-2 w-2 rounded-full bg-cafe-honey" />
+          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-cafe-muted">pedidos especiais da casa</span>
         </div>
       </div>
     </section>
@@ -941,37 +939,50 @@ function LoyaltyCard() {
 
 function PeDeCafe({ time }) {
   const [isWatering, setIsWatering] = useState(false);
-  const maxDays = 182;
-  const rawProgress = time.totalDays / maxDays;
-  const progress = Math.min(Math.max(rawProgress, 0.05), 1);
+  const maxDays = 365;
+  const progressValue = Math.min(Math.max(time.totalDays / maxDays, 0), 1);
+  const progressPercent = Math.round(progressValue * 100);
+  const growthMonth = Math.min(12, Math.max(1, time.years * 12 + time.months + (time.days >= 0 ? 1 : 0)));
+
+  const monthlyMessages = [
+    "22/12: Um mês de nós, e eu já sabia que era você.",
+    "22/01: Dois meses e meu lugar favorito continua sendo do seu lado.",
+    "22/02: Três meses de cuidado que fazem tudo florescer.",
+    "22/03: Quatro meses e cada conversa sua ainda me desmonta bonito.",
+    "22/04: Cinco meses, e todo dia comum vira lembrança boa com você.",
+    "22/05: Seis meses de amor servido quentinho, do jeitinho da casa.",
+    "22/06: Sete meses e eu sigo escolhendo você em cada detalhe.",
+    "22/07: Oito meses: nossa história só fica mais linda quando cresce junto.",
+    "22/08: Nove meses, com raiz firme e coração leve.",
+    "22/09: Dez meses e você continua sendo meu melhor destino.",
+    "22/10: Onze meses, quase um ano de um amor que só soma.",
+    "22/11: Um ano! Nosso bonsai está completo, como o nosso capítulo mais especial.",
+  ];
+
+  const currentMessage = monthlyMessages[growthMonth - 1];
 
   const handleWatering = () => {
     setIsWatering(true);
     confetti({
-      particleCount: 15,
-      spread: 40,
-      origin: { y: 0.65, x: 0.5 },
+      particleCount: 20,
+      spread: 50,
+      origin: { y: 0.64, x: 0.5 },
       colors: ["#7dd3fc", "#38bdf8", "#bae6fd"],
       shapes: ["circle"],
-      gravity: 1.5,
-      scalar: 0.6,
-      ticks: 40,
+      gravity: 1.4,
+      scalar: 0.65,
+      ticks: 45,
     });
-    setTimeout(() => setIsWatering(false), 1200);
+    setTimeout(() => setIsWatering(false), 1000);
   };
 
   return (
     <article className="relative overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
-      <div className="mb-4 flex items-start justify-between">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="eyebrow">jardim da mesa 22</p>
-          <h3 className="font-serif text-2xl font-bold">Nosso Pé de Café</h3>
-          <p className="mt-1 max-w-[200px] text-xs leading-5 text-cafe-muted">
-            {progress < 0.3 && "Semente plantada, criando as primeiras raízes."}
-            {progress >= 0.3 && progress < 0.7 && "Ganhando forma, crescendo um pouco todo dia."}
-            {progress >= 0.7 && progress < 1 && "Folhas fortes, preparando para dar frutos."}
-            {progress >= 1 && "Floresceu e deu frutos. 6 meses de colheita."}
-          </p>
+          <p className="eyebrow">bonsai da mesa 22</p>
+          <h3 className="font-serif text-2xl font-bold">Nosso Bonsai em Crescimento</h3>
+          <p className="mt-1 max-w-[240px] text-xs leading-5 text-cafe-muted">Crescendo todos os dias até completar 1 ano no dia 22/11.</p>
         </div>
         <button
           onClick={handleWatering}
@@ -980,86 +991,71 @@ function PeDeCafe({ time }) {
             "grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all",
             isWatering ? "scale-95 bg-blue-100 text-blue-500" : "bg-cafe-cream text-cafe-espresso hover:bg-[#e8dccb]",
           )}
-          aria-label="Regar planta"
+          aria-label="Regar bonsai"
         >
           <Droplets size={18} className={cn(isWatering && "animate-bounce")} />
         </button>
       </div>
 
-      <div className="relative mt-6 flex h-48 w-full items-end justify-center border-b-[3px] border-[#4a3525] pb-2">
-        <div className="absolute bottom-0 left-0 h-12 w-full bg-gradient-to-t from-[#4a3525]/10 to-transparent" />
+      <div className="relative mt-5 flex h-52 w-full items-end justify-center border-b-[3px] border-[#4a3525] pb-1">
+        <div className="absolute bottom-0 left-0 h-14 w-full bg-gradient-to-t from-[#4a3525]/10 to-transparent" />
 
         <Motion.div
-          animate={isWatering ? { scale: [1, 1.05, 1], y: [0, -5, 0] } : {}}
-          transition={{ duration: 0.6 }}
-          className="relative z-10 h-full w-full max-w-[200px]"
+          animate={isWatering ? { scale: [1, 1.04, 1], y: [0, -4, 0] } : {}}
+          transition={{ duration: 0.55 }}
+          className="relative z-10 h-full w-full max-w-[230px]"
         >
-          <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
+          <svg viewBox="0 0 120 110" className="h-full w-full overflow-visible">
+            <rect x="32" y="90" width="56" height="14" rx="4" fill="#6f4e37" />
+            <rect x="28" y="102" width="64" height="4" rx="2" fill="#4a3525" />
+
             <Motion.path
-              d="M 50 100 Q 40 60, 50 20"
+              d="M 60 90 C 54 78, 52 66, 60 54 C 70 40, 62 26, 56 18"
               fill="none"
               stroke="#5a3d2b"
-              strokeWidth="3.5"
+              strokeWidth="4"
               strokeLinecap="round"
               initial={{ pathLength: 0 }}
-              animate={{ pathLength: progress }}
-              transition={{ duration: 2, ease: "easeOut" }}
+              animate={{ pathLength: progressValue }}
+              transition={{ duration: 1.8, ease: "easeOut" }}
             />
 
-            {progress > 0.2 && <SVGLeaf path="M 50 80 Q 70 70, 85 85 Q 70 95, 50 80" delay={0.2} />}
-            {progress > 0.4 && <SVGLeaf path="M 48 60 Q 25 50, 15 65 Q 25 75, 48 60" delay={0.4} />}
-            {progress > 0.6 && <SVGLeaf path="M 51 40 Q 75 30, 85 45 Q 75 55, 51 40" delay={0.6} />}
-            {progress > 0.8 && <SVGLeaf path="M 49 25 Q 30 15, 20 30 Q 30 40, 49 25" delay={0.8} />}
-
-            {progress >= 1 && (
-              <>
-                <SVGCoffeeBean cx="55" cy="42" delay={1.2} />
-                <SVGCoffeeBean cx="44" cy="27" delay={1.4} />
-                <SVGCoffeeBean cx="53" cy="82" delay={1.6} />
-              </>
-            )}
+            {progressValue > 0.2 && <BonsaiLeaf path="M 60 62 C 76 58, 86 64, 90 72 C 76 74, 66 70, 60 62" delay={0.2} />}
+            {progressValue > 0.3 && <BonsaiLeaf path="M 59 56 C 46 50, 36 54, 30 62 C 42 66, 52 62, 59 56" delay={0.3} />}
+            {progressValue > 0.45 && <BonsaiLeaf path="M 57 45 C 42 36, 30 38, 24 46 C 36 52, 49 50, 57 45" delay={0.45} />}
+            {progressValue > 0.6 && <BonsaiLeaf path="M 62 40 C 78 34, 92 38, 98 48 C 84 54, 70 50, 62 40" delay={0.6} />}
+            {progressValue > 0.75 && <BonsaiLeaf path="M 58 30 C 45 22, 35 24, 29 30 C 40 38, 52 36, 58 30" delay={0.75} />}
+            {progressValue > 0.9 && <BonsaiLeaf path="M 61 24 C 74 18, 84 22, 90 28 C 79 34, 68 32, 61 24" delay={0.9} />}
+            {progressValue >= 1 && <Motion.circle cx="60" cy="18" r="4" fill="#d4a017" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }} />}
           </svg>
         </Motion.div>
       </div>
 
-      <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-cafe-line/50">
-        <Motion.div
-          className="h-full bg-cafe-honey"
-          initial={{ width: 0 }}
-          animate={{ width: `${progress * 100}%` }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-        />
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-cafe-line/50">
+        <Motion.div className="h-full bg-cafe-honey" initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} transition={{ duration: 1.2, ease: "easeOut" }} />
       </div>
+      <div className="mt-2 flex items-center justify-between text-[11px] font-black uppercase tracking-[0.14em] text-cafe-muted">
+        <span>Mês {growthMonth}/12</span>
+        <span>{progressPercent}%</span>
+      </div>
+      <p className="mt-3 rounded-xl border border-cafe-line/70 bg-cafe-cream/50 px-3 py-2 text-xs leading-5 text-cafe-ink break-words">{currentMessage}</p>
     </article>
   );
 }
 
-function SVGLeaf({ path, delay }) {
+function BonsaiLeaf({ path, delay }) {
   return (
     <Motion.path
       d={path}
-      fill="#4a6b33"
+      fill="#4f7c3b"
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", delay, stiffness: 80 }}
-      style={{ originX: "50px", originY: "100px" }}
+      transition={{ type: "spring", delay, stiffness: 90 }}
+      style={{ originX: "60px", originY: "90px" }}
     />
   );
 }
 
-function SVGCoffeeBean({ cx, cy, delay }) {
-  return (
-    <Motion.circle
-      cx={cx}
-      cy={cy}
-      r="4"
-      fill="#9f2f2f"
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ type: "spring", delay, bounce: 0.6 }}
-    />
-  );
-}
 
 function Arquivo({ activeEvent, setSelectedEventId }) {
   const [conversationOpen, setConversationOpen] = useState(false);
@@ -1346,13 +1342,13 @@ function AcervoFotos() {
         </p>
       </div>
 
-      <div className="mb-6 flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+      <div className="mb-6 -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-4">
         {photoEvents.map((event, index) => (
           <button
             key={event.id}
             onClick={() => setSelectedEventId(event.id)}
             className={cn(
-              "min-w-[180px] shrink-0 rounded-[1.2rem] border-2 p-3 text-left transition-all",
+              "min-w-[78%] max-w-[260px] snap-start shrink-0 rounded-[1.2rem] border-2 p-3 text-left transition-all sm:min-w-[220px]",
               event.id === activeEvent.id
                 ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper shadow-md"
                 : "border-dashed border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40 active:scale-95",
@@ -1369,8 +1365,8 @@ function AcervoFotos() {
               </span>
               <Tag size={14} className={event.id === activeEvent.id ? "text-cafe-honey" : "text-cafe-muted"} />
             </div>
-            <strong className="block truncate font-serif text-lg leading-tight">{event.folderName}</strong>
-            <span className="mt-1 flex items-center gap-1.5 text-[11px] font-bold opacity-70">
+            <strong className="block break-words font-serif text-base leading-tight sm:text-lg">{event.folderName}</strong>
+            <span className="mt-1 flex items-center gap-1.5 break-words text-[11px] font-bold opacity-70">
               <CalendarDays size={12} /> {event.displayDate}
             </span>
           </button>
@@ -1386,7 +1382,7 @@ function AcervoFotos() {
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cafe-muted">Ficha Técnica</p>
-                <h2 className="truncate font-serif text-2xl font-bold">{activeEvent.folderName}</h2>
+                <h2 className="break-words font-serif text-xl font-bold leading-tight sm:text-2xl">{activeEvent.folderName}</h2>
               </div>
             </div>
             <div className="hidden sm:block">
@@ -1434,7 +1430,7 @@ function AcervoFotos() {
                     <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-cafe-muted">
                       <Hash size={10} /> AMOSTRA {String(index + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="mt-1 truncate font-serif text-lg font-bold leading-tight text-cafe-ink">{activeEvent.title}</h3>
+                    <h3 className="mt-1 break-words font-serif text-base font-bold leading-tight text-cafe-ink sm:text-lg">{activeEvent.title}</h3>
                   </div>
                   <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-cafe-honey/30 bg-cafe-honey/10 text-cafe-honey">
                     <Camera size={14} />
@@ -1453,7 +1449,7 @@ function StockMetric({ label, value }) {
   return (
     <div className="rounded-xl border border-cafe-line/60 bg-cafe-cream/40 p-2 sm:p-3">
       <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-cafe-muted">{label}</span>
-      <strong className="mt-0.5 block truncate text-xs sm:text-sm">{value}</strong>
+      <strong className="mt-0.5 block break-words text-xs leading-tight sm:text-sm">{value}</strong>
     </div>
   );
 }
@@ -1493,7 +1489,7 @@ function PhotoFlipModal({ photoState, events, onClose, onChange }) {
 
   return (
     <Motion.div
-      className="fixed inset-0 z-[75] grid place-items-center bg-cafe-espresso/78 p-4"
+      className="fixed inset-0 z-[75] overflow-y-auto bg-cafe-espresso/78 p-3 sm:grid sm:place-items-center sm:p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -1505,12 +1501,12 @@ function PhotoFlipModal({ photoState, events, onClose, onChange }) {
         exit={{ y: 18, opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         onClick={(eventClick) => eventClick.stopPropagation()}
-        className="w-full max-w-lg"
+        className="my-4 w-full max-w-lg sm:my-0"
       >
         <div className="mb-3 flex items-center justify-between gap-3 text-cafe-paper">
           <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-cafe-honey">{event.label}</p>
-            <h2 className="truncate font-serif text-2xl font-bold">{event.title}</h2>
+            <h2 className="break-words font-serif text-xl font-bold leading-tight sm:text-2xl">{event.title}</h2>
           </div>
           <button
             onClick={onClose}
@@ -1541,14 +1537,14 @@ function PhotoFlipModal({ photoState, events, onClose, onChange }) {
               </div>
               <div className="px-2 pb-2 pt-4">
                 <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{event.displayDate}</span>
-                <p className="mt-1 font-serif text-2xl font-bold leading-tight">{event.folderName}</p>
+                <p className="mt-1 break-words font-serif text-xl font-bold leading-tight sm:text-2xl">{event.folderName}</p>
               </div>
             </div>
 
             <div className="photo-flip-face photo-flip-back rounded-[1.1rem] bg-cafe-paper p-5 shadow-cafe">
               <div className="flex h-full flex-col justify-between rounded-xl border border-dashed border-cafe-espresso/25 bg-[#fffaf0] p-5">
                 <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{event.displayDate}</span>
-                <p className="font-serif text-3xl leading-tight text-cafe-espresso" style={{ fontStyle: "italic" }}>
+                <p className="break-words font-serif text-2xl leading-tight text-cafe-espresso sm:text-3xl" style={{ fontStyle: "italic" }}>
                   {verso}
                 </p>
                 <span className="text-right text-sm font-black uppercase tracking-[0.14em] text-cafe-muted">Mesa 22</span>
