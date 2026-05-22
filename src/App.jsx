@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
 import { Toaster, toast } from "sonner";
 import useSound from "use-sound";
+import ReactPlayer from "react-player";
 import SignatureCanvas from "react-signature-canvas";
 import {
   Archive,
@@ -28,6 +29,8 @@ import {
   Radio,
   ReceiptText,
   Scale,
+  SkipBack,
+  SkipForward,
   Sparkles,
   Stamp,
   Trophy,
@@ -114,6 +117,57 @@ const loyaltyStamps = [
   ["22/05", "6 meses", "Pedido especial quase pronto."],
 ];
 
+// Para adicionar uma musica nova, coloque title, artist e url aqui.
+const musicTracks = [
+  {
+    id: "no-ordinary-love",
+    title: "No Ordinary Love",
+    artist: "Sade",
+    album: "Love Deluxe",
+    url: "https://www.youtube.com/watch?v=FpBx6tR8dck",
+    appleMusicUrl: "https://music.apple.com/us/song/no-ordinary-love/158796562",
+    cover: "https://img.youtube.com/vi/FpBx6tR8dck/hqdefault.jpg",
+    fallbackCover: "https://img.youtube.com/vi/FpBx6tR8dck/hqdefault.jpg",
+  },
+  {
+    id: "e-voce",
+    title: "É você",
+    artist: "Exaltasamba",
+    album: "Nova Bis: Exaltasamba",
+    url: "https://youtu.be/kU1zK2MZUrU?si=GWUJ7GKSIbscLeyo",
+    appleMusicUrl: "https://music.apple.com/us/song/e-voce/781567934",
+    cover: "https://img.youtube.com/vi/kU1zK2MZUrU/hqdefault.jpg",
+    fallbackCover: "https://img.youtube.com/vi/kU1zK2MZUrU/hqdefault.jpg",
+  },
+  {
+    id: "abandonado",
+    title: "Abandonado",
+    artist: "Exaltasamba",
+    album: "A Gente Bota pra Quebrar",
+    url: "https://youtu.be/gVIEa5w3JDE?si=uQY_r1ShqQ20_Rd9",
+    appleMusicUrl: "https://music.apple.com/gb/song/abandonado-ao-vivo/1021565561",
+    cover: "https://img.youtube.com/vi/gVIEa5w3JDE/hqdefault.jpg",
+    fallbackCover: "https://img.youtube.com/vi/gVIEa5w3JDE/hqdefault.jpg",
+  },
+  {
+    id: "heaven-can-wait",
+    title: "Heaven Can Wait",
+    artist: "Michael Jackson",
+    album: "Invincible",
+    url: "https://youtu.be/TDVlDUAIz5k?si=GmQYEVZ4Qr63EyqH",
+    appleMusicUrl: "https://music.apple.com/us/song/heaven-can-wait/215738809",
+    cover: "https://img.youtube.com/vi/TDVlDUAIz5k/hqdefault.jpg",
+    fallbackCover: "https://img.youtube.com/vi/TDVlDUAIz5k/hqdefault.jpg",
+  },
+];
+
+function formatPlayerTime(seconds) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "0:00";
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
 function useRelationshipTime() {
   const [now, setNow] = useState(() => new Date());
 
@@ -169,7 +223,7 @@ function App() {
       <Toaster position="top-center" richColors theme="light" />
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      <main className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-28 pt-5 sm:px-6 lg:pb-10">
+      <main className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-32 pt-5 sm:px-6 lg:pb-10">
         <AnimatePresence mode="wait">
           {activeTab === "counter" && <Balcao key="counter" setActiveTab={setActiveTab} />}
           {activeTab === "menu" && <Cardapio key="menu" onOrder={setReceipt} />}
@@ -224,8 +278,8 @@ function Header({ activeTab, setActiveTab }) {
 
 function BottomNav({ activeTab, setActiveTab }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-cafe-line bg-cafe-paper px-2 py-2 shadow-[0_-10px_30px_rgba(43,26,20,0.08)] md:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
+    <nav className="fixed inset-x-0 bottom-0 z-50 w-full border-t border-cafe-line bg-cafe-paper pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_30px_rgba(43,26,20,0.08)] md:hidden">
+      <div className="mx-auto flex w-full justify-between px-1 sm:px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -234,13 +288,13 @@ function BottomNav({ activeTab, setActiveTab }) {
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl transition-colors active:scale-95",
+                "flex min-h-[3.5rem] flex-1 flex-col items-center justify-center gap-1 rounded-xl px-1 transition-colors active:scale-95",
                 isActive ? "bg-cafe-espresso text-cafe-paper" : "text-cafe-muted",
               )}
               aria-label={item.label}
             >
               <Icon size={18} strokeWidth={2.4} className="shrink-0" />
-              <span className="w-full truncate text-center text-[10px] font-bold">{item.label}</span>
+              <span className="w-full break-words text-center text-[10px] font-bold leading-tight">{item.label}</span>
             </button>
           );
         })}
@@ -268,14 +322,14 @@ function Balcao({ setActiveTab }) {
 
   return (
     <Page className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-      <section className="relative flex flex-col-reverse items-center justify-between gap-8 overflow-hidden rounded-[1.6rem] border border-cafe-line bg-cafe-paper p-6 shadow-cafe sm:p-10 md:flex-row">
+      <section className="relative flex flex-col-reverse items-center justify-between gap-6 overflow-hidden rounded-[1.6rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe sm:gap-8 sm:p-10 md:flex-row">
         <div className="relative z-10 flex w-full flex-col items-start text-cafe-ink md:w-1/2">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cafe-line/50 bg-cafe-cream px-3 py-1.5 shadow-sm">
             <div className="h-2 w-2 animate-pulse rounded-full bg-cafe-honey" />
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cafe-espresso">Mesa ocupada</span>
           </div>
-          <h1 className="text-balance font-serif text-4xl font-bold leading-[1.1] sm:text-5xl">Mesa reservada para Melzudin e Advogata.</h1>
-          <p className="mt-4 max-w-sm text-balance text-sm leading-6 text-cafe-muted">
+          <h1 className="text-balance font-serif text-3xl font-bold leading-[1.1] sm:text-4xl lg:text-5xl">Mesa reservada para Melzudin e Advogata.</h1>
+          <p className="mt-3 max-w-sm text-balance text-sm leading-6 text-cafe-muted">
             Uma cafeteria simples, feita para guardar as conversas, fotos, pedidos e pequenos sinais que trouxeram vocês até aqui.
           </p>
         </div>
@@ -283,8 +337,8 @@ function Balcao({ setActiveTab }) {
           <div className="relative rotate-3 transition-transform duration-300 md:hover:rotate-1">
             <div className="absolute -inset-1 rounded-2xl bg-black/5 blur-md" />
             <div className="relative rounded-2xl border-[6px] border-white bg-white p-2 pb-10 shadow-xl">
-              <img src={acervoHero.src} alt={acervoHero.alt} className="h-64 w-64 rounded-xl object-cover sepia-[10%] grayscale-[20%] sm:h-72 sm:w-72" />
-              <span className="absolute bottom-3 right-4 -rotate-2 font-serif text-sm text-cafe-espresso/80">nossa constante.</span>
+              <img src={acervoHero.src} alt={acervoHero.alt} className="h-48 w-48 rounded-xl object-cover sepia-[10%] grayscale-[20%] sm:h-64 sm:w-64 lg:h-72 lg:w-72" />
+              <span className="absolute bottom-3 right-4 -rotate-2 font-serif text-sm text-cafe-espresso/80">Minha Constante.</span>
             </div>
           </div>
         </div>
@@ -352,7 +406,7 @@ function TimerCard({ time }) {
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
           <p className="eyebrow">tempo de preparo</p>
-          <h2 className="font-serif text-3xl font-bold">Desde 22/11/2025</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold">Desde 22/11/2025</h2>
         </div>
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-cafe-cream text-cafe-espresso">
           <Clock3 size={22} />
@@ -361,9 +415,9 @@ function TimerCard({ time }) {
 
       <div className="grid grid-cols-3 gap-2">
         {units.map(([label, value]) => (
-          <div key={label} className="rounded-2xl border border-cafe-line bg-cafe-cream p-3 text-center">
-            <strong className="block font-serif text-3xl leading-none">{value}</strong>
-            <span className="mt-1 block text-xs font-bold uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
+          <div key={label} className="rounded-2xl border border-cafe-line bg-cafe-cream p-2 sm:p-3 text-center">
+            <strong className="block font-serif text-2xl sm:text-3xl leading-none">{value}</strong>
+            <span className="mt-1 block text-[10px] sm:text-xs font-bold uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
           </div>
         ))}
       </div>
@@ -380,36 +434,183 @@ function TimerCard({ time }) {
 }
 
 function RadioCard() {
-  const audioRef = useRef(null);
+  const playerRef = useRef(null);
+  const [activeTrackIndex, setActiveTrackIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [duration, setDuration] = useState(0);
+  const [playedSeconds, setPlayedSeconds] = useState(0);
+
+  const activeTrack = musicTracks[activeTrackIndex];
+  const activeCover = activeTrack.cover ?? activeTrack.fallbackCover;
+  const progress = duration > 0 ? Math.min(100, (playedSeconds / duration) * 100) : 0;
+
+  const selectTrack = (index) => {
+    setPlayedSeconds(0);
+    setDuration(0);
+    setActiveTrackIndex(index);
+    setPlaying(true);
+  };
+
+  const skipTrack = (direction) => {
+    setPlayedSeconds(0);
+    setDuration(0);
+    setActiveTrackIndex((currentIndex) => {
+      const nextIndex = (currentIndex + direction + musicTracks.length) % musicTracks.length;
+      return nextIndex;
+    });
+    setPlaying(true);
+  };
+
+  const seekTo = (seconds) => {
+    const player = playerRef.current;
+    if (!player || !Number.isFinite(seconds)) return;
+    player.currentTime = Math.max(0, Math.min(seconds, duration || seconds));
+    setPlayedSeconds(player.currentTime);
+  };
 
   const toggle = () => {
-    if (!audioRef.current) return;
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
-      return;
-    }
-    audioRef.current.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    setPlaying((current) => !current);
   };
 
   return (
-    <section className="rounded-[1.4rem] border border-cafe-line bg-[#2b1a14] p-4 text-cafe-paper shadow-cafe">
-      <audio ref={audioRef} src="/musica.mp3" onEnded={() => setPlaying(false)} />
-      <div className="flex items-center gap-4">
-        <img src={acervoHero.src} alt={acervoHero.alt} className="h-20 w-20 rounded-2xl object-cover" />
+    <section className="overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-espresso p-4 text-cafe-paper shadow-cafe">
+      <div className="pointer-events-none h-px w-px overflow-hidden opacity-0" aria-hidden="true">
+        <ReactPlayer
+          ref={playerRef}
+          src={activeTrack.url}
+          playing={playing}
+          controls={false}
+          width="1px"
+          height="1px"
+          config={{
+            youtube: {
+              origin: typeof window === "undefined" ? undefined : window.location.origin,
+            },
+          }}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => skipTrack(1)}
+          onTimeUpdate={(event) => {
+            const currentTime = event.currentTarget?.currentTime ?? 0;
+            setPlayedSeconds(currentTime);
+          }}
+          onDurationChange={(event) => {
+            const nextDuration = event.currentTarget?.duration ?? 0;
+            setDuration(Number.isFinite(nextDuration) ? nextDuration : 0);
+          }}
+          onError={() => {
+            setPlaying(false);
+            toast.error("Essa faixa nao conseguiu tocar agora.", {
+              description: "Tente de novo ou pule para a proxima musica.",
+            });
+          }}
+        />
+      </div>
+
+      <div className="flex items-start gap-4">
+        <img
+          src={activeCover}
+          alt={`Capa de ${activeTrack.title}`}
+          className="h-24 w-24 shrink-0 rounded-md bg-cafe-paper/10 object-cover shadow-[0_18px_45px_rgba(0,0,0,0.28)]"
+        />
         <div className="min-w-0 flex-1">
-          <p className="eyebrow text-cafe-paper/60">radio da cafeteria</p>
-          <h3 className="truncate font-serif text-2xl font-bold">No Ordinary Love</h3>
-        <p className="text-sm text-cafe-paper/70">Sade, tocando no Café 22</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cafe-honey">radio da cafeteria</p>
+          <h3 className="mt-1 break-words font-serif text-2xl font-bold leading-tight text-cafe-paper">{activeTrack.title}</h3>
+          <p className="mt-1 break-words text-sm font-semibold text-cafe-paper/75">{activeTrack.artist}</p>
+          <p className="mt-0.5 break-words text-xs font-semibold text-cafe-paper/50">{activeTrack.album}</p>
         </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-center gap-3">
+        <button
+          onClick={() => skipTrack(-1)}
+          className="grid h-10 w-10 place-items-center rounded-full text-cafe-paper/70 transition hover:text-cafe-honey active:scale-95"
+          aria-label="Musica anterior"
+          type="button"
+        >
+          <SkipBack size={21} fill="currentColor" />
+        </button>
+        <button
+          onClick={() => seekTo(playedSeconds - 10)}
+          className="rounded-full px-2 py-1 text-xs font-black text-cafe-paper/55 transition hover:text-cafe-honey active:scale-95"
+          aria-label="Voltar 10 segundos"
+          type="button"
+        >
+          -10s
+        </button>
         <button
           onClick={toggle}
-          className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-cafe-honey text-cafe-espresso transition active:scale-95"
+          className="grid h-12 w-12 place-items-center rounded-full bg-cafe-honey text-cafe-espresso transition hover:scale-105 active:scale-95"
           aria-label={playing ? "Pausar" : "Tocar"}
+          type="button"
         >
           {playing ? <Pause size={21} fill="currentColor" /> : <Play size={21} fill="currentColor" />}
         </button>
+        <button
+          onClick={() => seekTo(playedSeconds + 10)}
+          className="rounded-full px-2 py-1 text-xs font-black text-cafe-paper/55 transition hover:text-cafe-honey active:scale-95"
+          aria-label="Avancar 10 segundos"
+          type="button"
+        >
+          +10s
+        </button>
+        <button
+          onClick={() => skipTrack(1)}
+          className="grid h-10 w-10 place-items-center rounded-full text-cafe-paper/70 transition hover:text-cafe-honey active:scale-95"
+          aria-label="Proxima musica"
+          type="button"
+        >
+          <SkipForward size={21} fill="currentColor" />
+        </button>
+      </div>
+
+      <div className="mt-3 grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 text-[11px] font-bold text-cafe-paper/55">
+        <span>{formatPlayerTime(playedSeconds)}</span>
+        <input
+          type="range"
+          min="0"
+          max={duration || 0}
+          value={duration ? Math.min(playedSeconds, duration) : 0}
+          step="0.1"
+          onChange={(event) => seekTo(Number(event.target.value))}
+          className="spotify-range"
+          style={{ "--progress": `${progress}%` }}
+          aria-label="Progresso da musica"
+        />
+        <span className="text-right">{formatPlayerTime(duration)}</span>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {musicTracks.map((track, index) => {
+          const isActive = index === activeTrackIndex;
+          return (
+            <button
+              key={track.id}
+              onClick={() => selectTrack(index)}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg p-2 text-left transition",
+                isActive
+                  ? "bg-cafe-paper/12 text-cafe-paper"
+                  : "text-cafe-paper/62 hover:bg-cafe-paper/8 hover:text-cafe-paper",
+              )}
+              type="button"
+            >
+              <span className={cn("w-5 text-center text-xs font-black", isActive ? "text-cafe-honey" : "text-cafe-paper/40")}>
+                {isActive && playing ? <Pause className="mx-auto" size={13} fill="currentColor" /> : index + 1}
+              </span>
+              <img
+                src={track.cover ?? track.fallbackCover}
+                alt=""
+                className="h-10 w-10 shrink-0 rounded object-cover"
+                loading="lazy"
+              />
+              <span className="min-w-0 flex-1">
+                <strong className={cn("block truncate text-sm", isActive && "text-cafe-honey")}>{track.title}</strong>
+                <span className="mt-0.5 block truncate text-xs text-cafe-paper/45">{track.artist}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
     </section>
   );
@@ -537,7 +738,7 @@ function Cardapio({ onOrder }) {
                   {item.category}
                 </span>
               </div>
-              <h3 className="mt-5 font-serif text-3xl font-bold">{item.name}</h3>
+              <h3 className="mt-5 font-serif text-2xl sm:text-3xl font-bold leading-tight">{item.name}</h3>
               <p className="mt-3 text-sm leading-6 text-cafe-muted">{item.description}</p>
               <div className="mt-5 flex items-center justify-between gap-4 border-t border-cafe-line pt-4">
                 <span className="text-sm font-black text-cafe-espresso">{item.price}</span>
@@ -586,7 +787,7 @@ function Mesa22({ setActiveTab }) {
     <Page className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
       <section className="rounded-[1.6rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
         <p className="eyebrow">reserva confirmada</p>
-      <h2 className="mt-2 font-serif text-5xl font-bold">Mesa 22</h2>
+      <h2 className="mt-2 font-serif text-4xl sm:text-5xl font-bold">Mesa 22</h2>
         <div className="mt-6 space-y-3">
           <InfoRow label="Clientes" value="Melzudin e Advogata" />
           <InfoRow label="Aberta desde" value="22/11/2025" />
@@ -624,9 +825,9 @@ function Mesa22({ setActiveTab }) {
 
 function InfoRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-cafe-line bg-cafe-cream px-4 py-3">
-      <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-muted">{label}</span>
-      <strong className="text-right text-sm">{value}</strong>
+    <div className="flex items-center justify-between gap-2 rounded-2xl border border-cafe-line bg-cafe-cream px-3 py-3 sm:px-4">
+      <span className="shrink-0 text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
+      <strong className="min-w-0 break-words text-right text-sm leading-tight">{value}</strong>
     </div>
   );
 }
@@ -637,13 +838,13 @@ function FeatureCard(props) {
   return (
     <Wrapper
       onClick={props.onClick}
-      className="flex w-full items-center gap-4 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-4 text-left shadow-cafe transition active:scale-[0.99]"
+      className="flex w-full items-center gap-3 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-4 text-left shadow-cafe transition active:scale-[0.99] sm:gap-4"
     >
-      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cafe-espresso text-cafe-paper">
-        <Icon size={22} />
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-cafe-espresso text-cafe-paper sm:h-12 sm:w-12">
+        <Icon size={20} />
       </span>
-      <span>
-        <strong className="block font-serif text-2xl">{props.title}</strong>
+      <span className="min-w-0">
+        <strong className="block font-serif text-xl sm:text-2xl">{props.title}</strong>
         <span className="mt-1 block text-sm leading-5 text-cafe-muted">{props.text}</span>
       </span>
     </Wrapper>
@@ -715,16 +916,16 @@ function LoyaltyCard() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <p className="eyebrow">cartao fidelidade</p>
-          <h3 className="font-serif text-3xl font-bold">Carimbos da Mesa 22</h3>
+          <h3 className="font-serif text-2xl sm:text-3xl font-bold">Caimbos da Mesa 22</h3>
         </div>
-        <Sparkles className="text-cafe-honey" size={25} />
+        <Sparkles className="text-cafe-honey" size={22} />
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
         {loyaltyStamps.map(([date, title, text]) => (
-          <div key={title} className="rounded-2xl border border-dashed border-cafe-espresso/30 bg-cafe-cream p-3">
+          <div key={title} className="rounded-2xl border border-dashed border-cafe-espresso/30 bg-cafe-cream p-2.5 sm:p-3">
             <span className="text-xs font-black text-cafe-honey">{date}</span>
-            <strong className="mt-1 block text-sm">{title}</strong>
-            <span className="mt-1 block text-xs leading-4 text-cafe-muted">{text}</span>
+            <strong className="mt-1 block text-sm leading-tight break-words">{title}</strong>
+            <span className="mt-1 block text-xs leading-4 text-cafe-muted break-words">{text}</span>
           </div>
         ))}
       </div>
@@ -775,11 +976,11 @@ function Arquivo({ activeEvent, setSelectedEventId }) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-start justify-between gap-3">
-                    <strong className="truncate font-serif text-xl">{event.title}</strong>
+                    <strong className="break-words font-serif text-xl leading-tight">{event.title}</strong>
                     <span className="shrink-0 text-[11px] font-bold opacity-70">{event.displayDate}</span>
                   </span>
-                  <span className="mt-1 block truncate text-xs font-semibold opacity-80">{preview}</span>
-                  <span className="mt-1 block text-[11px] font-bold opacity-70">{event.messages.length} mensagens</span>
+                  <span className="mt-1 block break-words text-xs font-semibold leading-tight opacity-80">{preview}</span>
+                  <span className="mt-2 block text-[11px] font-bold opacity-70">{event.messages.length} mensagens</span>
                 </span>
               </button>
             );
@@ -794,9 +995,41 @@ function Arquivo({ activeEvent, setSelectedEventId }) {
 }
 
 function ConversationModal({ event, onClose }) {
+  useEffect(() => {
+    const scrollY = window.scrollY;
+    const previousBodyStyles = {
+      left: document.body.style.left,
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      right: document.body.style.right,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    };
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyStyles.overflow;
+      document.body.style.position = previousBodyStyles.position;
+      document.body.style.top = previousBodyStyles.top;
+      document.body.style.left = previousBodyStyles.left;
+      document.body.style.right = previousBodyStyles.right;
+      document.body.style.width = previousBodyStyles.width;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   return (
     <Motion.div
-      className="fixed inset-0 z-[70] bg-cafe-espresso/70 p-0 sm:grid sm:place-items-center sm:p-4"
+      className="fixed inset-0 z-[70] overflow-hidden overscroll-contain bg-cafe-espresso/70 p-0 sm:grid sm:place-items-center sm:p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -807,26 +1040,26 @@ function ConversationModal({ event, onClose }) {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 20, opacity: 0 }}
         onClick={(event) => event.stopPropagation()}
-        className="h-[100dvh] w-full overflow-hidden bg-[#efe3d2] sm:h-auto sm:max-w-5xl sm:rounded-[1.2rem]"
+        className="flex h-[100dvh] min-h-0 w-full max-w-full flex-col overflow-hidden overscroll-contain bg-[#efe3d2] sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-[1.2rem]"
       >
-        <div className="flex items-center justify-between border-b border-cafe-line/60 bg-[#f8f0e5] px-3 py-2 sm:px-4 sm:py-3">
+        <div className="flex shrink-0 items-center justify-between border-b border-cafe-line/60 bg-[#f8f0e5] px-3 py-2 sm:px-4 sm:py-3">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               onClick={onClose}
-              className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cafe-paper text-cafe-espresso"
               aria-label="Voltar para lista de conversas"
             >
               <ChevronRight className="rotate-180" size={18} />
             </button>
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-cafe-espresso text-cafe-paper">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cafe-espresso text-cafe-paper">
               <MessageCircle size={18} />
             </span>
             <div className="min-w-0">
-              <strong className="block truncate text-sm leading-none text-cafe-ink">{event.title}</strong>
-              <span className="text-[11px] font-semibold text-cafe-muted">online</span>
+              <strong className="block break-words text-sm leading-tight text-cafe-ink">{event.title}</strong>
+              <span className="mt-0.5 block text-[11px] font-semibold text-cafe-muted">online</span>
             </div>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="hidden shrink-0 items-center gap-1 sm:flex">
             <button className="grid h-9 w-9 place-items-center rounded-full bg-cafe-paper text-cafe-espresso" aria-label="Ligar">
               <Phone size={16} />
             </button>
@@ -842,9 +1075,19 @@ function ConversationModal({ event, onClose }) {
 }
 
 function CoffeeTalk({ event, compact = false }) {
+  const messageRefs = useRef([]);
+  const chapters =
+    event.chapters?.map((chapter, index) =>
+      typeof chapter === "string" ? { label: chapter, messageIndex: index === 0 ? 0 : 0 } : chapter,
+    ) ?? [];
+
+  const jumpToChapter = (messageIndex) => {
+    messageRefs.current[messageIndex]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
-    <article className={cn("overflow-hidden border border-[#d8c5ae] bg-[#efe3d2] shadow-cafe", compact ? "h-[calc(100dvh-58px)] rounded-none sm:h-auto sm:rounded-[1.6rem]" : "rounded-[1.6rem]")}>
-      <div className={cn("border-b border-white/10 bg-[#241812] p-4 text-cafe-paper sm:p-5", compact && "hidden sm:block")}>
+    <article className={cn("flex min-h-0 w-full flex-col overflow-hidden border border-[#d8c5ae] bg-[#efe3d2] shadow-cafe", compact ? "flex-1 rounded-none sm:rounded-[1.6rem]" : "rounded-[1.6rem]")}>
+      <div className={cn("shrink-0 border-b border-white/10 bg-[#241812] p-4 text-cafe-paper sm:p-5", compact && "hidden sm:block")}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-honey">{event.label}</p>
@@ -856,23 +1099,28 @@ function CoffeeTalk({ event, compact = false }) {
             <strong className="font-serif text-xl">{event.displayDate}</strong>
           </div>
         </div>
-        {event.chapters && (
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-            {event.chapters.map((chapter) => (
-              <span key={chapter} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-cafe-paper/75">
-                {chapter}
-              </span>
+        {chapters.length > 0 && (
+          <div className="horizontal-scroll mt-4 flex gap-2 overflow-x-auto pb-1">
+            {chapters.map((chapter) => (
+              <button
+                key={chapter.label}
+                onClick={() => jumpToChapter(chapter.messageIndex)}
+                className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-bold text-cafe-paper/75 transition hover:bg-white/10 hover:text-cafe-paper"
+                type="button"
+              >
+                {chapter.label}
+              </button>
             ))}
           </div>
         )}
       </div>
 
-      <div className="relative min-h-[560px] bg-[#efe3d2]">
+      <div className="relative flex min-h-0 flex-1 flex-col bg-[#efe3d2]">
         <div className="absolute inset-0 opacity-[0.18] whatsapp-pattern" />
-        <div className="relative z-10 flex min-h-[560px] flex-col">
-          <div className="flex items-center justify-between border-b border-cafe-line/70 bg-[#f8f0e5] px-4 py-3">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+          <div className="flex shrink-0 items-center justify-between border-b border-cafe-line/70 bg-[#f8f0e5] px-4 py-3">
             <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-cafe-espresso text-cafe-paper">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cafe-espresso text-cafe-paper">
                 <Coffee size={19} />
               </span>
               <div>
@@ -882,10 +1130,34 @@ function CoffeeTalk({ event, compact = false }) {
             </div>
             <span className="rounded-full bg-[#d9fdd3] px-3 py-1 text-xs font-bold text-[#275d3b]">online</span>
           </div>
-          <div className="max-h-[64vh] overflow-y-auto px-3 py-5 sm:px-5 lg:max-h-[72vh]">
+          {chapters.length > 0 && (
+            <div className="shrink-0 border-b border-cafe-line/70 bg-[#fff8ec] px-3 py-2 sm:hidden">
+              <div className="horizontal-scroll flex gap-2 overflow-x-auto pb-1">
+                {chapters.map((chapter) => (
+                  <button
+                    key={chapter.label}
+                    onClick={() => jumpToChapter(chapter.messageIndex)}
+                    className="shrink-0 rounded-full border border-cafe-line bg-cafe-cream px-3 py-1.5 text-xs font-black text-cafe-espresso"
+                    type="button"
+                  >
+                    {chapter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="conversation-scroll min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-5">
             <div className="mx-auto flex max-w-3xl flex-col gap-2">
               {event.messages.map((message, index) => (
-                <ChatBubble key={`${message.stamp}-${index}`} message={message} />
+                <div
+                  key={`${message.stamp}-${index}`}
+                  ref={(node) => {
+                    messageRefs.current[index] = node;
+                  }}
+                  className="scroll-mt-4"
+                >
+                  <ChatBubble message={message} />
+                </div>
               ))}
             </div>
           </div>
@@ -900,10 +1172,10 @@ function ChatBubble({ message }) {
   const time = message.stamp.split(" ")[1];
 
   return (
-    <div className={cn("flex", isMelzudin ? "justify-end" : "justify-start")}>
+    <div className={cn("flex w-full min-w-0", isMelzudin ? "justify-end" : "justify-start")}>
       <div
         className={cn(
-          "relative max-w-[86%] rounded-lg px-3 py-2 shadow-sm sm:max-w-[68%]",
+          "relative max-w-[86%] min-w-0 overflow-hidden rounded-lg px-3 py-2 shadow-sm sm:max-w-[68%]",
           isMelzudin
             ? "rounded-tr-none bg-[#d9fdd3] text-[#1f1f1f]"
             : "rounded-tl-none bg-white text-[#1f1f1f]",
@@ -914,7 +1186,13 @@ function ChatBubble({ message }) {
             {message.author}
           </span>
         </div>
-        <p className="whitespace-pre-wrap pr-10 text-[15px] leading-6">{message.text}</p>
+        {/* wordBreak inline garante compatibilidade cross-browser para textos sem espaço */}
+        <p
+          className="whitespace-pre-wrap break-words pr-10 text-[15px] leading-6"
+          style={{ wordBreak: "break-word" }}
+        >
+          {message.text}
+        </p>
         <span className="absolute bottom-1 right-2 text-[10px] font-medium text-black/45">{time}</span>
       </div>
     </div>
@@ -939,24 +1217,24 @@ function AcervoFotos() {
 
       <section className="mb-5 overflow-hidden rounded-[1.45rem] border border-cafe-line bg-cafe-paper shadow-cafe">
         <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative min-h-[270px]">
+          <div className="relative min-h-[200px] sm:min-h-[270px]">
             <img src={acervoHero.src} alt={acervoHero.alt} className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-cafe-espresso/80 via-cafe-espresso/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 p-5 text-cafe-paper">
+            <div className="absolute bottom-0 left-0 p-4 text-cafe-paper sm:p-5">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-cafe-honey">foto da casa</p>
-              <h2 className="mt-1 font-serif text-4xl font-bold">Pebinhas taiobas</h2>
+              <h2 className="mt-1 font-serif text-2xl sm:text-3xl font-bold">Pebinhas taiobas</h2>
             </div>
           </div>
-          <div className="flex flex-col justify-between gap-5 p-5 sm:p-6">
+          <div className="flex flex-col justify-between gap-4 p-4 sm:gap-5 sm:p-6">
             <div>
               <p className="eyebrow">pasta do acervo</p>
               <p className="mt-1 text-sm font-black uppercase tracking-[0.14em] text-cafe-honey">
                 {activeEvent.folderName}
               </p>
-              <h3 className="mt-2 font-serif text-4xl font-bold">{activeEvent.title}</h3>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-cafe-muted">{activeEvent.summary}</p>
+              <h3 className="mt-2 font-serif text-2xl sm:text-3xl font-bold leading-tight break-words">{activeEvent.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-cafe-muted break-words">{activeEvent.summary}</p>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               <InfoMetric value={photoEvents.length} label="eventos" />
               <InfoMetric value={activeEvent.images.length} label="fotos" />
               <InfoMetric value="22" label="mesa" />
@@ -1012,9 +1290,9 @@ function AcervoFotos() {
 
 function InfoMetric({ value, label }) {
   return (
-    <div className="rounded-2xl border border-cafe-line bg-cafe-cream p-3 text-center">
-      <strong className="block font-serif text-3xl leading-none">{value}</strong>
-      <span className="mt-1 block text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
+    <div className="rounded-2xl border border-cafe-line bg-cafe-cream p-2 sm:p-3 text-center flex flex-col justify-center">
+      <strong className="block font-serif text-2xl sm:text-3xl leading-none">{value}</strong>
+      <span className="mt-1 block text-[10px] sm:text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
     </div>
   );
 }
@@ -1095,17 +1373,17 @@ function ReceiptModal({ item, onClose }) {
             {signed ? "recebimento assinado" : "assine para confirmar o recebimento"}
           </p>
         </div>
-        <div className="mt-6 grid grid-cols-2 gap-2">
+        <div className="mt-6 flex flex-col-reverse sm:grid sm:grid-cols-2 gap-2 sm:gap-3">
           <button
             onClick={onClose}
-            className="w-full rounded-2xl border border-cafe-line bg-cafe-paper px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-cafe-muted transition active:scale-[0.99]"
+            className="w-full rounded-2xl border border-cafe-line bg-cafe-paper px-3 py-3 text-xs sm:text-sm font-black uppercase tracking-[0.1em] sm:tracking-[0.16em] text-cafe-muted transition active:scale-[0.99]"
           >
             Cancelar
           </button>
           <button
             onClick={closeWhenSigned}
             className={cn(
-              "w-full rounded-2xl px-4 py-3 text-sm font-black uppercase tracking-[0.16em] transition",
+              "w-full rounded-2xl px-3 py-3 text-xs sm:text-sm font-black uppercase tracking-[0.1em] sm:tracking-[0.16em] transition",
               signed ? "bg-cafe-espresso text-cafe-paper active:scale-[0.99]" : "bg-cafe-line text-cafe-muted",
             )}
           >
@@ -1128,10 +1406,10 @@ function InfoLine({ label, value }) {
 
 function SectionTitle({ eyebrow, title, description }) {
   return (
-    <div className="mb-6 max-w-3xl">
+    <div className="mb-5 max-w-3xl sm:mb-6">
       <p className="eyebrow">{eyebrow}</p>
-      <h1 className="mt-2 font-serif text-4xl font-bold leading-tight sm:text-5xl">{title}</h1>
-      {description && <p className="mt-3 text-base leading-7 text-cafe-muted">{description}</p>}
+      <h1 className="mt-2 font-serif text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">{title}</h1>
+      {description && <p className="mt-2 text-sm leading-6 text-cafe-muted sm:mt-3 sm:text-base sm:leading-7">{description}</p>}
     </div>
   );
 }

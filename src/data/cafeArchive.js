@@ -177,11 +177,11 @@ export const archiveEvents = [
     label: "A candidatura",
     summary: "A conversa saiu de sono, louca e Nintendo para a candidatura mais importante do Café 22.",
     chapters: [
-      "Sono, louca e Nintendo",
-      "Os requisitos",
-      "A candidatura",
-      "A confissao",
-      "Nah I'd win",
+      { label: "Sono e Nintendo", messageIndex: 0 },
+      { label: "Os requisitos", messageIndex: 33 },
+      { label: "A candidatura", messageIndex: 75 },
+      { label: "A confissao", messageIndex: 84 },
+      { label: "Nah I'd win", messageIndex: 118 },
     ],
     messages: [
       { stamp: "08/11/2025 00:18", author: "Melzudin", text: "partiu 6h de sono?" },
