@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import Lottie from "lottie-react";
 import { Toaster, toast } from "sonner";
 import useSound from "use-sound";
 import ReactPlayer from "react-player";
@@ -10,6 +9,7 @@ import {
   Ban,
   BookOpen,
   CalendarCheck,
+  CalendarDays,
   Camera,
   ChevronRight,
   CheckCircle2,
@@ -17,12 +17,15 @@ import {
   Coffee,
   Croissant,
   CupSoda,
+  Droplets,
   Eraser,
   Gamepad2,
   Heart,
   Home,
   Image as ImageIcon,
   MessageCircle,
+  Hash,
+  Package,
   Pause,
   PenLine,
   Phone,
@@ -34,6 +37,7 @@ import {
   SkipForward,
   Sparkles,
   Stamp,
+  Tag,
   Trophy,
   Utensils,
   Video,
@@ -41,7 +45,6 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { archiveEvents } from "./data/cafeArchive";
-import coffeeTreeAnimation from "./data/coffeeTreeAnimation";
 import { acervoHero, photoEvents } from "./data/photoArchive";
 import { cn } from "./lib/utils";
 
@@ -117,47 +120,6 @@ const loyaltyStamps = [
   ["20/11", "Eu te amo", "O pedido saiu antes da mesa oficial."],
   ["22/11", "Café aberto", "Mesa 22 reservada."],
   ["22/05", "6 meses", "Pedido especial quase pronto."],
-];
-
-const coffeeGrowthYearDays = 365;
-
-const coffeePlantStages = [
-  {
-    title: "Semente plantada",
-    desc: "Onde o café e a história começaram.",
-    minDays: 0,
-    note: "primeiro gole",
-  },
-  {
-    title: "Brotinho",
-    desc: "Criando raízes silenciosas no dia a dia.",
-    minDays: 30,
-    note: "raiz aparecendo",
-  },
-  {
-    title: "Pé de Café Jovem",
-    desc: "Tronco firme, crescendo no clima da Mesa 22.",
-    minDays: 90,
-    note: "folhas firmes",
-  },
-  {
-    title: "Florada dos 6 meses",
-    desc: "A primeira florada chega antes da colheita completa.",
-    minDays: 182,
-    note: "flor de café",
-  },
-  {
-    title: "Copa amadurecendo",
-    desc: "Os galhos fecham, os frutos ganham cor e a sombra aumenta.",
-    minDays: 270,
-    note: "frutos no ponto",
-  },
-  {
-    title: "Árvore completa",
-    desc: "Um ano inteiro de raiz, copa e colheita afetiva.",
-    minDays: coffeeGrowthYearDays,
-    note: "1 ano completo",
-  },
 ];
 
 // Para adicionar uma musica nova, coloque title, artist e url aqui.
@@ -804,20 +766,18 @@ function Cardapio({ onOrder }) {
 
 function CardapioHeader() {
   return (
-    <section className="relative mb-7 overflow-hidden rounded-[1.45rem] border border-[#43291f] bg-cafe-espresso p-5 text-cafe-paper shadow-cafe sm:p-6">
-      <div className="absolute inset-0 opacity-35 cafe-counter-pattern" />
-      <div className="absolute bottom-0 left-0 h-14 w-full border-t-[7px] border-cafe-line bg-[#21130e]" />
-
-      <div className="relative z-20 text-center sm:text-left">
-        <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-paper/55">senha 22</p>
-        <h2 className="font-serif text-3xl font-bold leading-tight text-cafe-honey sm:text-4xl">Area de Pedidos</h2>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-cafe-paper/65">selecione seu pedido no cardápio</p>
-        <div className="mt-4 flex items-center justify-center gap-2 sm:justify-start">
-          <span className="grid h-11 w-11 place-items-center rounded-full border border-cafe-line/60 bg-cafe-paper text-cafe-espresso">
-            <Coffee size={20} />
-          </span>
-          <span className="h-8 w-5 rounded-t-full bg-cafe-honey/90" />
-          <span className="h-5 w-12 rounded-full bg-cafe-paper/85" />
+    <section className="relative mb-7 overflow-hidden rounded-[1.45rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe sm:p-6">
+      <div className="absolute -right-12 -top-10 h-36 w-36 rounded-full bg-cafe-honey/15 blur-2xl" />
+      <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-cafe-espresso/10 blur-2xl" />
+      <div className="relative z-10">
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-cafe-honey">menu afetivo</p>
+        <h2 className="mt-2 font-serif text-3xl font-bold leading-tight text-cafe-espresso sm:text-4xl">Escolha um pedido com gosto de memória</h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-cafe-muted">
+          Cada item foi pensado como um ritual da Mesa 22. Toque no seu favorito, aguarde o preparo e receba o comprovante desse capítulo.
+        </p>
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-cafe-line bg-cafe-cream px-3 py-1.5">
+          <span className="h-2 w-2 rounded-full bg-cafe-honey" />
+          <span className="text-[10px] font-black uppercase tracking-[0.16em] text-cafe-muted">pedidos especiais da casa</span>
         </div>
       </div>
     </section>
@@ -978,73 +938,124 @@ function LoyaltyCard() {
 }
 
 function PeDeCafe({ time }) {
-  const lottieRef = useRef(null);
-  const totalDays = Math.min(time.totalDays, coffeeGrowthYearDays);
-  const growthProgress = Math.min(totalDays / coffeeGrowthYearDays, 1);
-  const stageIndex = coffeePlantStages.reduce(
-    (currentStage, stage, index) => (time.totalDays >= stage.minDays ? index : currentStage),
-    0,
-  );
-  const current = coffeePlantStages[stageIndex];
-  const nextStage = coffeePlantStages[stageIndex + 1];
-  const frame = Math.round(growthProgress * coffeeGrowthYearDays);
-  const progress = Math.round(growthProgress * 100);
-  const remainingDays = nextStage ? Math.max(0, nextStage.minDays - time.totalDays) : 0;
+  const [isWatering, setIsWatering] = useState(false);
+  const maxDays = 365;
+  const progressValue = Math.min(Math.max(time.totalDays / maxDays, 0), 1);
+  const progressPercent = Math.round(progressValue * 100);
+  const growthMonth = Math.min(12, Math.max(1, time.years * 12 + time.months + (time.days >= 0 ? 1 : 0)));
 
-  useEffect(() => {
-    lottieRef.current?.goToAndStop(frame, true);
-  }, [frame]);
+  const monthlyMessages = [
+    "22/12: Um mês de nós, e eu já sabia que era você.",
+    "22/01: Dois meses e meu lugar favorito continua sendo do seu lado.",
+    "22/02: Três meses de cuidado que fazem tudo florescer.",
+    "22/03: Quatro meses e cada conversa sua ainda me desmonta bonito.",
+    "22/04: Cinco meses, e todo dia comum vira lembrança boa com você.",
+    "22/05: Seis meses de amor servido quentinho, do jeitinho da casa.",
+    "22/06: Sete meses e eu sigo escolhendo você em cada detalhe.",
+    "22/07: Oito meses: nossa história só fica mais linda quando cresce junto.",
+    "22/08: Nove meses, com raiz firme e coração leve.",
+    "22/09: Dez meses e você continua sendo meu melhor destino.",
+    "22/10: Onze meses, quase um ano de um amor que só soma.",
+    "22/11: Um ano! Nosso bonsai está completo, como o nosso capítulo mais especial.",
+  ];
+
+  const currentMessage = monthlyMessages[growthMonth - 1];
+
+  const handleWatering = () => {
+    setIsWatering(true);
+    confetti({
+      particleCount: 20,
+      spread: 50,
+      origin: { y: 0.64, x: 0.5 },
+      colors: ["#7dd3fc", "#38bdf8", "#bae6fd"],
+      shapes: ["circle"],
+      gravity: 1.4,
+      scalar: 0.65,
+      ticks: 45,
+    });
+    setTimeout(() => setIsWatering(false), 1000);
+  };
 
   return (
-    <article className="relative overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 text-center shadow-cafe">
-      <div className="coffee-ring left-[-46px] top-[-44px]" />
-      <div className="coffee-ring bottom-[-58px] right-[-42px]" />
-
-      <div className="relative z-10 mb-6 flex items-start justify-between gap-4 text-left">
-        <div className="min-w-0">
-          <p className="eyebrow">jardim da mesa 22</p>
-          <h3 className="mt-1 text-balance font-serif text-2xl font-bold leading-tight sm:text-3xl">{current.title}</h3>
+    <article className="relative overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">bonsai da mesa 22</p>
+          <h3 className="font-serif text-2xl font-bold">Nosso Bonsai em Crescimento</h3>
+          <p className="mt-1 max-w-[240px] text-xs leading-5 text-cafe-muted">Crescendo todos os dias até completar 1 ano no dia 22/11.</p>
         </div>
-        <span className="shrink-0 rounded-full border border-cafe-line bg-cafe-cream px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cafe-muted">
-          Estágio {stageIndex + 1}/{coffeePlantStages.length}
-        </span>
+        <button
+          onClick={handleWatering}
+          disabled={isWatering}
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all",
+            isWatering ? "scale-95 bg-blue-100 text-blue-500" : "bg-cafe-cream text-cafe-espresso hover:bg-[#e8dccb]",
+          )}
+          aria-label="Regar bonsai"
+        >
+          <Droplets size={18} className={cn(isWatering && "animate-bounce")} />
+        </button>
       </div>
 
-      <div className="relative z-10 mb-5 h-52 overflow-hidden rounded-[1.2rem] border border-cafe-line bg-cafe-cream/70 sm:h-56">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(216,155,53,0.18),transparent_42%),linear-gradient(180deg,rgba(255,248,236,0.7),rgba(244,234,220,0.2))]" />
-        <Lottie
-          lottieRef={lottieRef}
-          animationData={coffeeTreeAnimation}
-          autoplay={false}
-          loop={false}
-          rendererSettings={{ preserveAspectRatio: "xMidYMid meet" }}
-          className="relative z-10 h-full w-full"
-          onDOMLoaded={() => lottieRef.current?.goToAndStop(frame, true)}
-          aria-hidden="true"
-        />
+      <div className="relative mt-5 flex h-52 w-full items-end justify-center border-b-[3px] border-[#4a3525] pb-1">
+        <div className="absolute bottom-0 left-0 h-14 w-full bg-gradient-to-t from-[#4a3525]/10 to-transparent" />
+
+        <Motion.div
+          animate={isWatering ? { scale: [1, 1.04, 1], y: [0, -4, 0] } : {}}
+          transition={{ duration: 0.55 }}
+          className="relative z-10 h-full w-full max-w-[230px]"
+        >
+          <svg viewBox="0 0 120 110" className="h-full w-full overflow-visible">
+            <rect x="32" y="90" width="56" height="14" rx="4" fill="#6f4e37" />
+            <rect x="28" y="102" width="64" height="4" rx="2" fill="#4a3525" />
+
+            <Motion.path
+              d="M 60 90 C 54 78, 52 66, 60 54 C 70 40, 62 26, 56 18"
+              fill="none"
+              stroke="#5a3d2b"
+              strokeWidth="4"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: progressValue }}
+              transition={{ duration: 1.8, ease: "easeOut" }}
+            />
+
+            {progressValue > 0.2 && <BonsaiLeaf path="M 60 62 C 76 58, 86 64, 90 72 C 76 74, 66 70, 60 62" delay={0.2} />}
+            {progressValue > 0.3 && <BonsaiLeaf path="M 59 56 C 46 50, 36 54, 30 62 C 42 66, 52 62, 59 56" delay={0.3} />}
+            {progressValue > 0.45 && <BonsaiLeaf path="M 57 45 C 42 36, 30 38, 24 46 C 36 52, 49 50, 57 45" delay={0.45} />}
+            {progressValue > 0.6 && <BonsaiLeaf path="M 62 40 C 78 34, 92 38, 98 48 C 84 54, 70 50, 62 40" delay={0.6} />}
+            {progressValue > 0.75 && <BonsaiLeaf path="M 58 30 C 45 22, 35 24, 29 30 C 40 38, 52 36, 58 30" delay={0.75} />}
+            {progressValue > 0.9 && <BonsaiLeaf path="M 61 24 C 74 18, 84 22, 90 28 C 79 34, 68 32, 61 24" delay={0.9} />}
+            {progressValue >= 1 && <Motion.circle cx="60" cy="18" r="4" fill="#d4a017" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }} />}
+          </svg>
+        </Motion.div>
       </div>
 
-      <div className="relative z-10">
-        <div className="h-2 overflow-hidden rounded-full bg-cafe-cream">
-          <Motion.div
-            className="h-full rounded-full bg-cafe-honey"
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.max(4, progress)}%` }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
-          />
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.14em] text-cafe-muted">
-          <span>{current.note}</span>
-          <span>{progress}% do 1º ano</span>
-        </div>
-        <p className="mx-auto mt-4 max-w-[19rem] text-sm leading-6 text-cafe-muted">{current.desc}</p>
-        <p className="mt-3 text-xs font-bold text-cafe-muted">
-          {nextStage ? `Faltam ${remainingDays} dias para ${nextStage.title.toLowerCase()}.` : "A árvore completou seu primeiro ciclo."}
-        </p>
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-cafe-line/50">
+        <Motion.div className="h-full bg-cafe-honey" initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} transition={{ duration: 1.2, ease: "easeOut" }} />
       </div>
+      <div className="mt-2 flex items-center justify-between text-[11px] font-black uppercase tracking-[0.14em] text-cafe-muted">
+        <span>Mês {growthMonth}/12</span>
+        <span>{progressPercent}%</span>
+      </div>
+      <p className="mt-3 rounded-xl border border-cafe-line/70 bg-cafe-cream/50 px-3 py-2 text-xs leading-5 text-cafe-ink break-words">{currentMessage}</p>
     </article>
   );
 }
+
+function BonsaiLeaf({ path, delay }) {
+  return (
+    <Motion.path
+      d={path}
+      fill="#4f7c3b"
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", delay, stiffness: 90 }}
+      style={{ originX: "60px", originY: "90px" }}
+    />
+  );
+}
+
 
 function Arquivo({ activeEvent, setSelectedEventId }) {
   const [conversationOpen, setConversationOpen] = useState(false);
@@ -1314,114 +1325,141 @@ function ChatBubble({ message }) {
 
 function AcervoFotos() {
   const [selectedEventId, setSelectedEventId] = useState(photoEvents[0]?.id);
-  const [openPhoto, setOpenPhoto] = useState(null);
   const activeEvent = photoEvents.find((event) => event.id === selectedEventId) ?? photoEvents[0];
 
-  if (!activeEvent) {
-    return null;
-  }
+  if (!activeEvent) return null;
 
   return (
     <Page>
-      <SectionTitle
-        eyebrow="acervo da cafeteria"
-        title="Cada pasta virou uma memória com nome, contexto e lugar próprio."
-        description="Escolha um evento para ver as fotos daquele capítulo da Mesa 22, sem misturar as histórias."
-      />
+      <div className="mb-6 max-w-3xl">
+        <p className="eyebrow flex items-center gap-2">
+          <Package size={14} /> estoque da mesa 22
+        </p>
+        <h1 className="mt-2 font-serif text-4xl font-bold leading-tight sm:text-5xl">Lotes de Memórias</h1>
+        <p className="mt-3 text-sm leading-6 text-cafe-muted">
+          Aqui, cada dia importante é armazenado como um lote único de café especial. Fichas catalogadas, amostras
+          preservadas e prontas para consumo.
+        </p>
+      </div>
 
-      <section className="mb-5 overflow-hidden rounded-[1.45rem] border border-cafe-line bg-cafe-paper shadow-cafe">
-        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="relative min-h-[200px] sm:min-h-[270px]">
-            <img src={acervoHero.src} alt={acervoHero.alt} className="absolute inset-0 h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-cafe-espresso/80 via-cafe-espresso/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 p-4 text-cafe-paper sm:p-5">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-cafe-honey">foto da casa</p>
-              <h2 className="mt-1 font-serif text-2xl sm:text-3xl font-bold">Pebinhas taiobas</h2>
-            </div>
-          </div>
-          <div className="flex flex-col justify-between gap-4 p-4 sm:gap-5 sm:p-6">
-            <div>
-              <p className="eyebrow">pasta do acervo</p>
-              <p className="mt-1 text-sm font-black uppercase tracking-[0.14em] text-cafe-honey">
-                {activeEvent.folderName}
-              </p>
-              <h3 className="mt-2 font-serif text-2xl sm:text-3xl font-bold leading-tight break-words">{activeEvent.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-cafe-muted break-words">{activeEvent.summary}</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              <InfoMetric value={photoEvents.length} label="eventos" />
-              <InfoMetric value={activeEvent.images.length} label="fotos" />
-              <InfoMetric value="22" label="mesa" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mb-5 flex gap-3 overflow-x-auto pb-2">
-        {photoEvents.map((event) => (
+      <div className="mb-6 -mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-4">
+        {photoEvents.map((event, index) => (
           <button
             key={event.id}
             onClick={() => setSelectedEventId(event.id)}
             className={cn(
-              "min-w-[250px] rounded-[1.1rem] border p-3 text-left transition",
+              "min-w-[78%] max-w-[260px] snap-start shrink-0 rounded-[1.2rem] border-2 p-3 text-left transition-all sm:min-w-[220px]",
               event.id === activeEvent.id
-                ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper"
-                : "border-cafe-line bg-cafe-paper text-cafe-ink active:opacity-85",
+                ? "border-cafe-espresso bg-cafe-espresso text-cafe-paper shadow-md"
+                : "border-dashed border-cafe-line bg-cafe-paper text-cafe-ink hover:border-cafe-espresso/40 active:scale-95",
             )}
           >
-            <span className="text-xs font-black uppercase tracking-[0.14em] opacity-70">{event.displayDate}</span>
-            <strong className="mt-1 block font-serif text-xl leading-tight">{event.folderName}</strong>
-            <span className="mt-1 block text-sm font-semibold leading-5 opacity-80">{event.title}</span>
-            <span className="mt-1 flex items-center gap-1 text-xs font-bold opacity-70">
-              <Camera size={13} />
-              {event.images.length} foto{event.images.length === 1 ? "" : "s"}
+            <div className="mb-2 flex items-center justify-between">
+              <span
+                className={cn(
+                  "text-[10px] font-black uppercase tracking-widest",
+                  event.id === activeEvent.id ? "text-cafe-honey" : "text-cafe-muted",
+                )}
+              >
+                Lote #{String(index + 1).padStart(2, "0")}
+              </span>
+              <Tag size={14} className={event.id === activeEvent.id ? "text-cafe-honey" : "text-cafe-muted"} />
+            </div>
+            <strong className="block break-words font-serif text-base leading-tight sm:text-lg">{event.folderName}</strong>
+            <span className="mt-1 flex items-center gap-1.5 break-words text-[11px] font-bold opacity-70">
+              <CalendarDays size={12} /> {event.displayDate}
             </span>
           </button>
         ))}
       </div>
 
+      <section className="mb-6 rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-1 shadow-cafe">
+        <div className="rounded-[1.2rem] border-2 border-dashed border-cafe-line/50 bg-[#fcf9f2] p-4 sm:p-6">
+          <div className="mb-4 flex items-center justify-between border-b border-cafe-line/50 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-cafe-cream text-cafe-espresso">
+                <Archive size={24} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cafe-muted">Ficha Técnica</p>
+                <h2 className="break-words font-serif text-xl font-bold leading-tight sm:text-2xl">{activeEvent.folderName}</h2>
+              </div>
+            </div>
+            <div className="hidden sm:block">
+              <BarcodePattern />
+            </div>
+          </div>
+
+          <p className="text-sm leading-6 text-cafe-ink/80">{activeEvent.summary}</p>
+
+          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+            <StockMetric label="Status" value="Estocado" />
+            <StockMetric label="Colheita" value={activeEvent.displayDate} />
+            <StockMetric label="Variedade" value={activeEvent.title} />
+            <StockMetric label="Amostras" value={`${activeEvent.images.length} fotos`} />
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {activeEvent.images.map((photo, index) => {
           const src = typeof photo === "string" ? photo : photo.src;
           return (
-          <Motion.button
-            key={src}
-            type="button"
-            onClick={() => setOpenPhoto({ eventId: activeEvent.id, index })}
-            whileHover={{ y: -4, rotate: 0 }}
-            className="rounded-[1.2rem] border border-cafe-line bg-cafe-paper p-3 text-left shadow-cafe"
-            style={{ rotate: `${[-1.4, 1.2, -0.6, 1.6, -1, 0.8][index]}deg` }}
-          >
-            <div className="aspect-[4/5] overflow-hidden rounded-xl bg-cafe-cream">
-              <img src={src} alt={`${activeEvent.title} ${index + 1}`} className="h-full w-full object-cover" />
-            </div>
-            <div className="px-2 pb-2 pt-4">
-              <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{activeEvent.label}</span>
-              <h3 className="font-serif text-2xl font-bold">{activeEvent.title}</h3>
-            </div>
-          </Motion.button>
+            <Motion.article
+              key={src}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+              className="group relative overflow-hidden rounded-[1.2rem] border border-cafe-line bg-cafe-paper shadow-sm"
+            >
+              <div className="aspect-square w-full border-b border-cafe-line bg-[#fdfbf7] p-3 pb-0">
+                <div className="h-full w-full overflow-hidden rounded-t-xl bg-cafe-cream">
+                  <img
+                    src={src}
+                    alt={`${activeEvent.title} ${index + 1}`}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+
+              <div className="relative bg-cafe-paper p-4">
+                <div className="absolute left-0 top-0 h-[1px] w-full border-t border-dashed border-cafe-line" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-cafe-muted">
+                      <Hash size={10} /> AMOSTRA {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <h3 className="mt-1 break-words font-serif text-base font-bold leading-tight text-cafe-ink sm:text-lg">{activeEvent.title}</h3>
+                  </div>
+                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-cafe-honey/30 bg-cafe-honey/10 text-cafe-honey">
+                    <Camera size={14} />
+                  </div>
+                </div>
+              </div>
+            </Motion.article>
           );
         })}
       </div>
-      <AnimatePresence>
-        {openPhoto && (
-          <PhotoFlipModal
-            photoState={openPhoto}
-            events={photoEvents}
-            onClose={() => setOpenPhoto(null)}
-            onChange={setOpenPhoto}
-          />
-        )}
-      </AnimatePresence>
     </Page>
   );
 }
 
-function InfoMetric({ value, label }) {
+function StockMetric({ label, value }) {
   return (
-    <div className="rounded-2xl border border-cafe-line bg-cafe-cream p-2 sm:p-3 text-center flex flex-col justify-center">
-      <strong className="block font-serif text-2xl sm:text-3xl leading-none">{value}</strong>
-      <span className="mt-1 block text-[10px] sm:text-xs font-black uppercase tracking-[0.14em] text-cafe-muted">{label}</span>
+    <div className="rounded-xl border border-cafe-line/60 bg-cafe-cream/40 p-2 sm:p-3">
+      <span className="block text-[10px] font-black uppercase tracking-[0.16em] text-cafe-muted">{label}</span>
+      <strong className="mt-0.5 block break-words text-xs leading-tight sm:text-sm">{value}</strong>
+    </div>
+  );
+}
+
+function BarcodePattern() {
+  return (
+    <div className="flex h-8 items-center gap-[2px] opacity-30 grayscale">
+      {[2, 4, 2, 1, 3, 1, 2, 4, 1, 2, 3, 2, 1, 4, 2, 1].map((w, i) => (
+        <div key={i} className="h-full bg-cafe-ink" style={{ width: `${w}px` }} />
+      ))}
     </div>
   );
 }
@@ -1451,7 +1489,7 @@ function PhotoFlipModal({ photoState, events, onClose, onChange }) {
 
   return (
     <Motion.div
-      className="fixed inset-0 z-[75] grid place-items-center bg-cafe-espresso/78 p-4"
+      className="fixed inset-0 z-[75] overflow-y-auto bg-cafe-espresso/78 p-3 sm:grid sm:place-items-center sm:p-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -1463,12 +1501,12 @@ function PhotoFlipModal({ photoState, events, onClose, onChange }) {
         exit={{ y: 18, opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
         onClick={(eventClick) => eventClick.stopPropagation()}
-        className="w-full max-w-lg"
+        className="my-4 w-full max-w-lg sm:my-0"
       >
         <div className="mb-3 flex items-center justify-between gap-3 text-cafe-paper">
           <div className="min-w-0">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-cafe-honey">{event.label}</p>
-            <h2 className="truncate font-serif text-2xl font-bold">{event.title}</h2>
+            <h2 className="break-words font-serif text-xl font-bold leading-tight sm:text-2xl">{event.title}</h2>
           </div>
           <button
             onClick={onClose}
@@ -1499,14 +1537,14 @@ function PhotoFlipModal({ photoState, events, onClose, onChange }) {
               </div>
               <div className="px-2 pb-2 pt-4">
                 <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{event.displayDate}</span>
-                <p className="mt-1 font-serif text-2xl font-bold leading-tight">{event.folderName}</p>
+                <p className="mt-1 break-words font-serif text-xl font-bold leading-tight sm:text-2xl">{event.folderName}</p>
               </div>
             </div>
 
             <div className="photo-flip-face photo-flip-back rounded-[1.1rem] bg-cafe-paper p-5 shadow-cafe">
               <div className="flex h-full flex-col justify-between rounded-xl border border-dashed border-cafe-espresso/25 bg-[#fffaf0] p-5">
                 <span className="text-xs font-black uppercase tracking-[0.16em] text-cafe-honey">{event.displayDate}</span>
-                <p className="font-serif text-3xl leading-tight text-cafe-espresso" style={{ fontStyle: "italic" }}>
+                <p className="break-words font-serif text-2xl leading-tight text-cafe-espresso sm:text-3xl" style={{ fontStyle: "italic" }}>
                   {verso}
                 </p>
                 <span className="text-right text-sm font-black uppercase tracking-[0.14em] text-cafe-muted">Mesa 22</span>
