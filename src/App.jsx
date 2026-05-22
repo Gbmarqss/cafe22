@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion as Motion } from "framer-motion";
-import Lottie from "lottie-react";
 import { Toaster, toast } from "sonner";
 import useSound from "use-sound";
 import ReactPlayer from "react-player";
@@ -17,6 +16,7 @@ import {
   Coffee,
   Croissant,
   CupSoda,
+  Droplets,
   Eraser,
   Gamepad2,
   Heart,
@@ -41,7 +41,6 @@ import {
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { archiveEvents } from "./data/cafeArchive";
-import coffeeTreeAnimation from "./data/coffeeTreeAnimation";
 import { acervoHero, photoEvents } from "./data/photoArchive";
 import { cn } from "./lib/utils";
 
@@ -117,47 +116,6 @@ const loyaltyStamps = [
   ["20/11", "Eu te amo", "O pedido saiu antes da mesa oficial."],
   ["22/11", "Café aberto", "Mesa 22 reservada."],
   ["22/05", "6 meses", "Pedido especial quase pronto."],
-];
-
-const coffeeGrowthYearDays = 365;
-
-const coffeePlantStages = [
-  {
-    title: "Semente plantada",
-    desc: "Onde o café e a história começaram.",
-    minDays: 0,
-    note: "primeiro gole",
-  },
-  {
-    title: "Brotinho",
-    desc: "Criando raízes silenciosas no dia a dia.",
-    minDays: 30,
-    note: "raiz aparecendo",
-  },
-  {
-    title: "Pé de Café Jovem",
-    desc: "Tronco firme, crescendo no clima da Mesa 22.",
-    minDays: 90,
-    note: "folhas firmes",
-  },
-  {
-    title: "Florada dos 6 meses",
-    desc: "A primeira florada chega antes da colheita completa.",
-    minDays: 182,
-    note: "flor de café",
-  },
-  {
-    title: "Copa amadurecendo",
-    desc: "Os galhos fecham, os frutos ganham cor e a sombra aumenta.",
-    minDays: 270,
-    note: "frutos no ponto",
-  },
-  {
-    title: "Árvore completa",
-    desc: "Um ano inteiro de raiz, copa e colheita afetiva.",
-    minDays: coffeeGrowthYearDays,
-    note: "1 ano completo",
-  },
 ];
 
 // Para adicionar uma musica nova, coloque title, artist e url aqui.
@@ -978,71 +936,124 @@ function LoyaltyCard() {
 }
 
 function PeDeCafe({ time }) {
-  const lottieRef = useRef(null);
-  const totalDays = Math.min(time.totalDays, coffeeGrowthYearDays);
-  const growthProgress = Math.min(totalDays / coffeeGrowthYearDays, 1);
-  const stageIndex = coffeePlantStages.reduce(
-    (currentStage, stage, index) => (time.totalDays >= stage.minDays ? index : currentStage),
-    0,
-  );
-  const current = coffeePlantStages[stageIndex];
-  const nextStage = coffeePlantStages[stageIndex + 1];
-  const frame = Math.round(growthProgress * coffeeGrowthYearDays);
-  const progress = Math.round(growthProgress * 100);
-  const remainingDays = nextStage ? Math.max(0, nextStage.minDays - time.totalDays) : 0;
+  const [isWatering, setIsWatering] = useState(false);
+  const maxDays = 182;
+  const rawProgress = time.totalDays / maxDays;
+  const progress = Math.min(Math.max(rawProgress, 0.05), 1);
 
-  useEffect(() => {
-    lottieRef.current?.goToAndStop(frame, true);
-  }, [frame]);
+  const handleWatering = () => {
+    setIsWatering(true);
+    confetti({
+      particleCount: 15,
+      spread: 40,
+      origin: { y: 0.65, x: 0.5 },
+      colors: ["#7dd3fc", "#38bdf8", "#bae6fd"],
+      shapes: ["circle"],
+      gravity: 1.5,
+      scalar: 0.6,
+      ticks: 40,
+    });
+    setTimeout(() => setIsWatering(false), 1200);
+  };
 
   return (
-    <article className="relative overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 text-center shadow-cafe">
-      <div className="coffee-ring left-[-46px] top-[-44px]" />
-      <div className="coffee-ring bottom-[-58px] right-[-42px]" />
-
-      <div className="relative z-10 mb-6 flex items-start justify-between gap-4 text-left">
-        <div className="min-w-0">
+    <article className="relative overflow-hidden rounded-[1.4rem] border border-cafe-line bg-cafe-paper p-5 shadow-cafe">
+      <div className="mb-4 flex items-start justify-between">
+        <div>
           <p className="eyebrow">jardim da mesa 22</p>
-          <h3 className="mt-1 text-balance font-serif text-2xl font-bold leading-tight sm:text-3xl">{current.title}</h3>
+          <h3 className="font-serif text-2xl font-bold">Nosso Pé de Café</h3>
+          <p className="mt-1 max-w-[200px] text-xs leading-5 text-cafe-muted">
+            {progress < 0.3 && "Semente plantada, criando as primeiras raízes."}
+            {progress >= 0.3 && progress < 0.7 && "Ganhando forma, crescendo um pouco todo dia."}
+            {progress >= 0.7 && progress < 1 && "Folhas fortes, preparando para dar frutos."}
+            {progress >= 1 && "Floresceu e deu frutos. 6 meses de colheita."}
+          </p>
         </div>
-        <span className="shrink-0 rounded-full border border-cafe-line bg-cafe-cream px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-cafe-muted">
-          Estágio {stageIndex + 1}/{coffeePlantStages.length}
-        </span>
+        <button
+          onClick={handleWatering}
+          disabled={isWatering}
+          className={cn(
+            "grid h-10 w-10 shrink-0 place-items-center rounded-full transition-all",
+            isWatering ? "scale-95 bg-blue-100 text-blue-500" : "bg-cafe-cream text-cafe-espresso hover:bg-[#e8dccb]",
+          )}
+          aria-label="Regar planta"
+        >
+          <Droplets size={18} className={cn(isWatering && "animate-bounce")} />
+        </button>
       </div>
 
-      <div className="relative z-10 mb-5 h-52 overflow-hidden rounded-[1.2rem] border border-cafe-line bg-cafe-cream/70 sm:h-56">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(216,155,53,0.18),transparent_42%),linear-gradient(180deg,rgba(255,248,236,0.7),rgba(244,234,220,0.2))]" />
-        <Lottie
-          lottieRef={lottieRef}
-          animationData={coffeeTreeAnimation}
-          autoplay={false}
-          loop={false}
-          rendererSettings={{ preserveAspectRatio: "xMidYMid meet" }}
-          className="relative z-10 h-full w-full"
-          onDOMLoaded={() => lottieRef.current?.goToAndStop(frame, true)}
-          aria-hidden="true"
+      <div className="relative mt-6 flex h-48 w-full items-end justify-center border-b-[3px] border-[#4a3525] pb-2">
+        <div className="absolute bottom-0 left-0 h-12 w-full bg-gradient-to-t from-[#4a3525]/10 to-transparent" />
+
+        <Motion.div
+          animate={isWatering ? { scale: [1, 1.05, 1], y: [0, -5, 0] } : {}}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 h-full w-full max-w-[200px]"
+        >
+          <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible">
+            <Motion.path
+              d="M 50 100 Q 40 60, 50 20"
+              fill="none"
+              stroke="#5a3d2b"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: progress }}
+              transition={{ duration: 2, ease: "easeOut" }}
+            />
+
+            {progress > 0.2 && <SVGLeaf path="M 50 80 Q 70 70, 85 85 Q 70 95, 50 80" delay={0.2} />}
+            {progress > 0.4 && <SVGLeaf path="M 48 60 Q 25 50, 15 65 Q 25 75, 48 60" delay={0.4} />}
+            {progress > 0.6 && <SVGLeaf path="M 51 40 Q 75 30, 85 45 Q 75 55, 51 40" delay={0.6} />}
+            {progress > 0.8 && <SVGLeaf path="M 49 25 Q 30 15, 20 30 Q 30 40, 49 25" delay={0.8} />}
+
+            {progress >= 1 && (
+              <>
+                <SVGCoffeeBean cx="55" cy="42" delay={1.2} />
+                <SVGCoffeeBean cx="44" cy="27" delay={1.4} />
+                <SVGCoffeeBean cx="53" cy="82" delay={1.6} />
+              </>
+            )}
+          </svg>
+        </Motion.div>
+      </div>
+
+      <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-cafe-line/50">
+        <Motion.div
+          className="h-full bg-cafe-honey"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress * 100}%` }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
         />
       </div>
-
-      <div className="relative z-10">
-        <div className="h-2 overflow-hidden rounded-full bg-cafe-cream">
-          <Motion.div
-            className="h-full rounded-full bg-cafe-honey"
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.max(4, progress)}%` }}
-            transition={{ duration: 0.55, ease: "easeOut" }}
-          />
-        </div>
-        <div className="mt-3 flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.14em] text-cafe-muted">
-          <span>{current.note}</span>
-          <span>{progress}% do 1º ano</span>
-        </div>
-        <p className="mx-auto mt-4 max-w-[19rem] text-sm leading-6 text-cafe-muted">{current.desc}</p>
-        <p className="mt-3 text-xs font-bold text-cafe-muted">
-          {nextStage ? `Faltam ${remainingDays} dias para ${nextStage.title.toLowerCase()}.` : "A árvore completou seu primeiro ciclo."}
-        </p>
-      </div>
     </article>
+  );
+}
+
+function SVGLeaf({ path, delay }) {
+  return (
+    <Motion.path
+      d={path}
+      fill="#4a6b33"
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", delay, stiffness: 80 }}
+      style={{ originX: "50px", originY: "100px" }}
+    />
+  );
+}
+
+function SVGCoffeeBean({ cx, cy, delay }) {
+  return (
+    <Motion.circle
+      cx={cx}
+      cy={cy}
+      r="4"
+      fill="#9f2f2f"
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{ type: "spring", delay, bounce: 0.6 }}
+    />
   );
 }
 
