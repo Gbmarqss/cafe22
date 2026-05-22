@@ -942,7 +942,8 @@ function PeDeCafe({ time }) {
   const maxDays = 365;
   const progressValue = Math.min(Math.max(time.totalDays / maxDays, 0), 1);
   const progressPercent = Math.round(progressValue * 100);
-  const growthMonth = Math.min(12, Math.max(1, time.years * 12 + time.months + (time.days >= 0 ? 1 : 0)));
+  const completedMonths = Math.max(0, time.years * 12 + time.months);
+  const growthMonth = Math.min(12, Math.max(1, completedMonths));
 
   const monthlyMessages = [
     "22/12: Um mês de nós, e eu já sabia que era você.",
