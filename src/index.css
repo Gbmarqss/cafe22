@@ -212,6 +212,36 @@ img {
   -webkit-overflow-scrolling: touch;
 }
 
+.photo-flip-scene {
+  width: min(100%, 420px);
+  perspective: 1400px;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.photo-flip-scene:active {
+  cursor: grabbing;
+}
+
+.photo-flip-card {
+  position: relative;
+  aspect-ratio: 4 / 5.65;
+  width: 100%;
+  transform-style: preserve-3d;
+}
+
+.photo-flip-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.photo-flip-back {
+  transform: rotateY(180deg);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -3,6 +3,17 @@ export const acervoHero = {
   alt: "Gabriel e Gabi juntos",
 };
 
+const photoVerses = {
+  "primeira-foto-juntos": "Aqui foi quando a coragem deixou de ser frase e virou lembranca guardada.",
+  "primeiro-beijo-bochecha": "Um beijo pequeno na bochecha, um caminho inteiro voltando feliz.",
+  "camisa-f1": "Na largada ou no sofa, contigo eu sempre acho que estou em primeiro.",
+  "melhor-ano-novo": "O ano virou, mas quem mudou meu jeito de lembrar o tempo foi voce.",
+  "telurio-americio-oxigenio": "A tabela periodica tentou explicar, mas no fim era simples: te amo.",
+  "servindo-juntos": "Servir ao lado dela fez qualquer escala parecer reserva especial.",
+  "primeiro-dia-praia": "O mar ja era bonito; naquele dia ele so aprendeu a dividir a cena.",
+  "interesse-transporte-publico": "Se ate o caminho simples ficava bom contigo, imagina o destino.",
+};
+
 export const photoEvents = [
   {
     id: "primeira-foto-juntos",
@@ -110,4 +121,6 @@ export const photoEvents = [
       "/img/Separação/Deve estar comigo por interesse/IMG-20260503-WA0007.jpeg",
     ],
   },
-].sort((first, second) => first.date.localeCompare(second.date));
+]
+  .map((event) => ({ ...event, verso: photoVerses[event.id] }))
+  .sort((first, second) => first.date.localeCompare(second.date));
